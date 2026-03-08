@@ -7,7 +7,14 @@ import exportRouter from './routes/export.js'
 const app = express()
 const PORT = process.env.PORT || 3001
 
-app.use(cors())
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:5174']
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'],
+}))
 app.use(express.json())
 
 // Routes

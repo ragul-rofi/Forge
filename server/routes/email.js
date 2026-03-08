@@ -34,10 +34,10 @@ router.post('/send-result-email', async (req, res) => {
 
     // Try to get roadmap data
     try {
-      const { DOMAIN_ROADMAPS } = await import('../../client/src/data/roadmaps.js')
+      const { DOMAIN_ROADMAPS } = await import('../lib/roadmaps.js')
       roadmap = DOMAIN_ROADMAPS[domain]
     } catch {
-      // Roadmap import may fail in production; that's okay
+      // Roadmap import may fail; that's okay
     }
 
     const result = await sendResultEmail({
