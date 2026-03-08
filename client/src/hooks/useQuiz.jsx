@@ -1,0 +1,234 @@
+import { useState, useCallback, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { GATEWAY_QUESTIONS, getQuestionsForMode } from '../data/questions'
+import { calculateProfile, profileToDomain, applyGatewayOverride, calculateValidateVerdict } from '../lib/scoring'
+
+const STORAGE_KEY = 'forge-quiz-state'
+
+const initialState = {
+  phase: 'collect_info',
+  studentInfo: { name: '', email: '', year: '', department: '' },
+  mode: null,
+  validateTarget: null,
+  gatewayAnswers: [],
+  currentQuestionIndex: 0,
+  answers: [],
+  sessionId: null,
+  result: null,
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (parsed.phase === 'done') return initialState
+      return parsed
+    }
+  } catch (e) {
+    // ignore
+  }
+  return initialState
+}
+
+export function useQuiz() {
+  const [state, setState] = useState(loadState)
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }, [state])
+
+  const questions = state.mode ? getQuestionsForMode(state.mode, state.validateTarget) : []
+  const gatewayQuestions = GATEWAY_QUESTIONS
+  const totalQuestions = questions.length
+  const isGatewayPhase = state.phase === 'gateway'
+  const currentGatewayQuestion = isGatewayPhase ? gatewayQuestions[state.gatewayAnswers.length] : null
+  const currentQuestion = state.phase === 'quiz' ? questions[state.currentQuestionIndex] : null
+
+  const submitStudentInfo = useCallback(async (info) => {
+    setState(prev => ({
+      ...prev,
+      studentInfo: info,
+      phase: 'select_path',
+    }))
+  }, [])
+
+  const selectMode = useCallback((mode, validateTarget = null) => {
+    setState(prev => ({
+      ...prev,
+      mode,
+      validateTarget,
+      phase: 'gateway',
+    }))
+  }, [])
+
+  const answerGateway = useCallback((answer) => {
+    setState(prev => {
+      const newGatewayAnswers = [...prev.gatewayAnswers, answer]
+      if (newGatewayAnswers.length >= 2) {
+        return { ...prev, gatewayAnswers: newGatewayAnswers, phase: 'quiz' }
+      }
+      return { ...prev, gatewayAnswers: newGatewayAnswers }
+    })
+  }, [])
+
+  const answerQuestion = useCallback(async (questionId, optionId, scores, tag) => {
+    setState(prev => {
+      const newAnswers = [...prev.answers, { questionId, optionId, scores: scores || {}, tag }]
+      const modeQuestions = getQuestionsForMode(prev.mode, prev.validateTarget)
+      const nextIndex = prev.currentQuestionIndex + 1
+      const completionRate = Math.round((newAnswers.length / modeQuestions.length) * 100)
+
+      // Update completion_rate in Supabase
+      if (prev.sessionId) {
+        supabase
+          .from('quiz_sessions')
+          .update({ completion_rate: completionRate, answers: newAnswers })
+          .eq('id', prev.sessionId)
+          .then(() => {})
+          .catch(() => {})
+      }
+
+      if (nextIndex >= modeQuestions.length) {
+        // Quiz complete — calculate results
+        const profileResult = calculateProfile(newAnswers)
+        const domainMapping = profileToDomain[profileResult.primary]
+        const timeAvailable = prev.gatewayAnswers[0]?.tag || ''
+        const priority = prev.gatewayAnswers[1]?.tag || ''
+
+        let recommendedDomain = domainMapping.primary
+        let secondDomain = domainMapping.secondary
+        let overrideReason = null
+
+        if (prev.mode === 'validate') {
+          const validateAnswers = newAnswers.slice(0, 4)
+          const fitAnswers = newAnswers.slice(4)
+          const fitScore = fitAnswers.reduce((sum, a) => {
+            const totalScore = Object.values(a.scores || {}).reduce((s, v) => s + v, 0)
+            return sum + totalScore
+          }, 0)
+          const verdict = calculateValidateVerdict(validateAnswers, fitScore)
+
+          return {
+            ...prev,
+            answers: newAnswers,
+            currentQuestionIndex: nextIndex,
+            phase: 'done',
+            result: {
+              ...profileResult,
+              recommendedDomain: prev.validateTarget,
+              secondDomain: domainMapping.primary,
+              overrideReason: null,
+              validateVerdict: verdict,
+              timeAvailable,
+              priority,
+              q12Tag: newAnswers.find(a => a.questionId === 'g12')?.tag || null,
+            },
+          }
+        }
+
+        const override = applyGatewayOverride(recommendedDomain, timeAvailable, priority)
+        if (override.reason) {
+          recommendedDomain = override.domain
+          overrideReason = override.reason
+        }
+
+        return {
+          ...prev,
+          answers: newAnswers,
+          currentQuestionIndex: nextIndex,
+          phase: 'done',
+          result: {
+            ...profileResult,
+            recommendedDomain,
+            secondDomain,
+            overrideReason,
+            validateVerdict: null,
+            timeAvailable,
+            priority,
+            q12Tag: newAnswers.find(a => a.questionId === 'g12')?.tag || null,
+          },
+        }
+      }
+
+      return {
+        ...prev,
+        answers: newAnswers,
+        currentQuestionIndex: nextIndex,
+      }
+    })
+  }, [])
+
+  const saveSession = useCallback(async () => {
+    if (!state.result || !state.studentInfo.email) return null
+
+    const sessionData = {
+      student_email: state.studentInfo.email,
+      student_name: state.studentInfo.name,
+      year_of_study: state.studentInfo.year,
+      department: state.studentInfo.department || null,
+      quiz_mode: state.mode,
+      time_available: state.result.timeAvailable,
+      priority: state.result.priority,
+      gateway_answers: state.gatewayAnswers,
+      answers: state.answers,
+      primary_profile: state.result.primary,
+      secondary_profile: state.result.secondary,
+      recommended_domain: state.result.recommendedDomain,
+      second_domain: state.result.secondDomain,
+      validate_target: state.validateTarget,
+      validate_verdict: state.result.validateVerdict,
+      score_breakdown: state.result.scores,
+      completion_rate: 100,
+    }
+
+    try {
+      if (state.sessionId) {
+        const { data, error } = await supabase
+          .from('quiz_sessions')
+          .update(sessionData)
+          .eq('id', state.sessionId)
+          .select()
+          .single()
+        if (error) throw error
+        return data?.id
+      } else {
+        const { data, error } = await supabase
+          .from('quiz_sessions')
+          .insert(sessionData)
+          .select()
+          .single()
+        if (error) throw error
+        const newId = data?.id
+        setState(prev => ({ ...prev, sessionId: newId }))
+        return newId
+      }
+    } catch (err) {
+      console.error('Failed to save session:', err)
+      // Generate a local ID for offline mode
+      const localId = 'local-' + Date.now()
+      setState(prev => ({ ...prev, sessionId: localId }))
+      return localId
+    }
+  }, [state])
+
+  const resetQuiz = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setState(initialState)
+  }, [])
+
+  return {
+    state,
+    questions,
+    gatewayQuestions,
+    totalQuestions,
+    currentGatewayQuestion,
+    currentQuestion,
+    submitStudentInfo,
+    selectMode,
+    answerGateway,
+    answerQuestion,
+    saveSession,
+    resetQuiz,
+  }
+}

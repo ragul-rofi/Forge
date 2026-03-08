@@ -1,0 +1,8 @@
+FORGE_master_build_prompt.md
+node_modules
+dist/
+.env
+.env.local
+*.local
+.DS_Store
+Thumbs.db

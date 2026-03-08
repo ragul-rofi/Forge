@@ -1,0 +1,19 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from './hooks/useTheme'
+import { AdminProvider } from './hooks/useAdmin'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AdminProvider>
+          <App />
+        </AdminProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+)
