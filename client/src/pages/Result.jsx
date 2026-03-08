@@ -168,7 +168,7 @@ export default function Result() {
           </div>
 
           {roadmap && (
-            <p className="text-center text-sm mt-2 font-serif italic" style={{ color: 'var(--muted2)' }}>
+            <p className="text-center text-sm mt-2 italic" style={{ color: 'var(--muted2)' }}>
               {roadmap.tagline}
             </p>
           )}
@@ -178,15 +178,16 @@ export default function Result() {
         {isValidate && verdict && (
           <section className="mb-8">
             <div
-              className="card p-5 border-l-4"
+              className="card p-5"
               style={{
+                borderLeft: '4px solid',
                 borderLeftColor: verdict === 'strong' ? '#10b981' : verdict === 'redirect' ? '#f43f5e' : '#fbbf24'
               }}
             >
-              <h4 className="font-mono text-xs tracking-wider mb-2" style={{
+              <h4 className="text-xs font-semibold tracking-wide mb-2" style={{
                 color: verdict === 'strong' ? '#10b981' : verdict === 'redirect' ? '#f43f5e' : '#fbbf24'
               }}>
-                {verdict === 'strong' ? 'STRONG FIT' : verdict === 'redirect' ? 'REDIRECT SUGGESTED' : 'PROCEED WITH CAUTION'}
+                {verdict === 'strong' ? 'Strong Fit' : verdict === 'redirect' ? 'Redirect Suggested' : 'Proceed with Caution'}
               </h4>
               <p className="text-sm" style={{ color: 'var(--muted2)' }}>
                 {verdict === 'strong'
@@ -203,9 +204,9 @@ export default function Result() {
         {/* Section 2: Gateway override note */}
         {session.overrideReason && (
           <section className="mb-8">
-            <div className="card p-5 border-l-4" style={{ borderLeftColor: '#fbbf24' }}>
-              <h4 className="font-mono text-xs tracking-wider mb-2" style={{ color: '#fbbf24' }}>
-                TIMELINE ADJUSTMENT
+            <div className="card p-5" style={{ borderLeft: '4px solid #fbbf24' }}>
+              <h4 className="text-xs font-semibold tracking-wide mb-2" style={{ color: '#fbbf24' }}>
+                Timeline Adjustment
               </h4>
               <p className="text-sm" style={{ color: 'var(--muted2)' }}>{session.overrideReason}</p>
             </div>
@@ -222,7 +223,7 @@ export default function Result() {
         {/* Section 4: Roadmap */}
         {roadmap && (
           <section className="mb-8">
-            <h3 className="section-label mb-4">YOUR ROADMAP</h3>
+            <h3 className="section-label mb-4">Your Roadmap</h3>
             {roadmap.phases.map((phase, i) => (
               <RoadmapPhase
                 key={phase.number}

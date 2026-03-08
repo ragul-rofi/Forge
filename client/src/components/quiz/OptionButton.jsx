@@ -9,7 +9,7 @@ export default function OptionButton({ letter, text, selected, previouslySelecte
       disabled={disabled}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      className="w-full text-left p-4 border transition-all duration-120 cursor-pointer"
+      className="w-full text-left p-4 border transition-all duration-150 cursor-pointer"
       style={{
         backgroundColor: selected
           ? 'var(--surface3)'
@@ -19,14 +19,17 @@ export default function OptionButton({ letter, text, selected, previouslySelecte
               ? 'var(--surface2)'
               : 'var(--surface)',
         borderColor: selected ? 'var(--text)' : previouslySelected ? 'var(--muted)' : 'var(--border)',
-        borderRadius: '2px',
+        borderRadius: 'var(--radius)',
         opacity: disabled && !selected ? 0.5 : 1,
       }}
     >
       <div className="flex items-start gap-3">
         <span
-          className="font-mono text-xs mt-0.5 shrink-0"
-          style={{ color: previouslySelected ? 'var(--text)' : 'var(--muted)' }}
+          className="text-xs font-semibold mt-0.5 shrink-0 w-5 h-5 flex items-center justify-center rounded-full"
+          style={{ 
+            color: previouslySelected ? 'var(--bg)' : 'var(--muted)',
+            backgroundColor: previouslySelected ? 'var(--text)' : 'var(--surface3)',
+          }}
         >
           {letter.toUpperCase()}
         </span>
@@ -34,8 +37,8 @@ export default function OptionButton({ letter, text, selected, previouslySelecte
           {text}
         </span>
         {previouslySelected && (
-          <span className="ml-auto text-[10px] font-mono shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>
-            selected
+          <span className="ml-auto text-xs shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>
+            your pick
           </span>
         )}
       </div>

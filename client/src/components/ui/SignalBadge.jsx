@@ -6,14 +6,14 @@ export default function SignalBadge({ signal }) {
 
   return (
     <span
-      className="tag"
+      className="text-xs px-2.5 py-1 font-medium"
       style={{
         backgroundColor: `${color}15`,
         color,
-        borderColor: `${color}40`,
+        borderRadius: '999px',
       }}
     >
-      {signal.toUpperCase()}
+      {signal}
     </span>
   )
 }

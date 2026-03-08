@@ -32,14 +32,14 @@ export default function Landing() {
         <DomainOrbit />
 
         <RevealOnScroll>
-          <span className="section-label mb-8 block">STUDENT CAREER PROFILER</span>
+          <span className="text-sm font-medium mb-8 block" style={{ color: 'var(--muted)' }}>Student Career Profiler</span>
         </RevealOnScroll>
 
         <RevealOnScroll delay={80}>
           <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-[800] tracking-tight leading-[0.95] mb-8 relative z-10">
-            <span style={{ color: 'var(--muted)' }}>Don't find</span>
+            <span style={{ color: 'var(--muted2)' }}>Don't find</span>
             <br />
-            <span style={{ color: 'var(--muted)' }}>your path.</span>
+            <span style={{ color: 'var(--muted2)' }}>your path.</span>
             <br />
             <span className="relative" style={{ color: 'var(--text)' }}>
               Forge it
@@ -80,9 +80,8 @@ export default function Landing() {
       {/* How it works */}
       <section className="max-w-4xl mx-auto px-6 py-24 md:py-32">
         <RevealOnScroll>
-          <span className="section-label block mb-4">HOW IT WORKS</span>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
-            Three steps. Zero fluff.
+            How it works
           </h2>
         </RevealOnScroll>
 
@@ -90,7 +89,7 @@ export default function Landing() {
           {STEPS.map((step, i) => (
             <RevealOnScroll key={step.num} delay={i * 100}>
               <div className="relative">
-                <span className="font-mono text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
+                <span className="text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
                   style={{ color: 'var(--border)', opacity: 0.5 }}>
                   {step.num}
                 </span>
@@ -109,9 +108,8 @@ export default function Landing() {
       {/* Domain grid */}
       <section className="max-w-5xl mx-auto px-6 pb-24 md:pb-32">
         <RevealOnScroll>
-          <span className="section-label block mb-4">8 DOMAINS</span>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
-            Where you could land.
+            8 domains you could land in
           </h2>
           <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
             Each one comes with real salary data, difficulty ratings, and a phase-by-phase roadmap.
@@ -131,9 +129,8 @@ export default function Landing() {
       <section className="border-t" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
         <div className="max-w-4xl mx-auto px-6 py-24 md:py-32">
           <RevealOnScroll>
-            <span className="section-label block mb-4">WHAT YOU WALK AWAY WITH</span>
             <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
-              Not just a label. A plan.
+              Not just a label. A real plan.
             </h2>
           </RevealOnScroll>
 
@@ -173,9 +170,8 @@ export default function Landing() {
       {/* Three paths preview */}
       <section className="max-w-4xl mx-auto px-6 py-24 md:py-32">
         <RevealOnScroll>
-          <span className="section-label block mb-4">3 QUIZ MODES</span>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
-            Pick your starting point.
+            Pick your starting point
           </h2>
           <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
             Whether you're lost, exploring, or already have a direction — there's a mode for you.
@@ -235,7 +231,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t px-6 py-8" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-xs font-mono tracking-wider" style={{ color: 'var(--muted)' }}>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>
             FORGE · {new Date().getFullYear()}
           </span>
           <span className="text-xs" style={{ color: 'var(--muted)' }}>
@@ -325,8 +321,8 @@ function DomainMarquee() {
         {items.map((d, i) => (
           <span key={`${d.key}-${i}`} className="inline-flex items-center gap-2 mx-6 whitespace-nowrap">
             <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
-            <span className="font-mono text-xs tracking-wider" style={{ color: 'var(--muted2)' }}>
-              {d.name.toUpperCase()}
+            <span className="text-xs font-medium tracking-wide" style={{ color: 'var(--muted2)' }}>
+              {d.name}
             </span>
           </span>
         ))}
@@ -382,11 +378,11 @@ function ResultPreviewCard({ icon, title, desc }) {
 function PathCard({ label, title, desc, detail }) {
   return (
     <div className="card flex flex-col h-full" style={{ padding: '24px' }}>
-      <span className="font-mono text-[9px] tracking-[0.2em] mb-3 block" style={{ color: 'var(--muted)' }}>
+      <span className="text-xs font-medium mb-3 block" style={{ color: 'var(--muted)' }}>
         {label}
       </span>
       <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>{title}</h3>
-      <p className="font-mono text-[11px] tracking-wider mb-3" style={{ color: 'var(--muted2)' }}>{desc}</p>
+      <p className="text-xs mb-3" style={{ color: 'var(--muted2)' }}>{desc}</p>
       <p className="text-sm mt-auto" style={{ color: 'var(--muted)' }}>{detail}</p>
     </div>
   )

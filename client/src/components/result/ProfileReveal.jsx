@@ -38,10 +38,10 @@ export default function ProfileReveal({ profile }) {
   return (
     <div className="fade-in text-center">
       <div className="text-5xl mb-4">{emoji}</div>
-      <h2 className="font-mono text-sm tracking-[0.2em] mb-6" style={{ color: 'var(--muted2)' }}>
+      <h2 className="text-sm font-semibold tracking-wide mb-6" style={{ color: 'var(--muted2)' }}>
         {name}
       </h2>
-      <p className="font-serif text-lg md:text-xl leading-relaxed max-w-xl mx-auto" style={{ color: 'var(--text)' }}>
+      <p className="text-lg md:text-xl leading-relaxed max-w-xl mx-auto" style={{ color: 'var(--text)' }}>
         {displayedText}
       </p>
       {showDomain && (

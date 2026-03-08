@@ -15,7 +15,7 @@ export default function SalaryCard({ domain, salaryData }) {
 
   return (
     <div className="card p-6">
-      <h4 className="section-label mb-4">SALARY & REALITY</h4>
+      <h4 className="section-label mb-4">Salary & Reality</h4>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -39,10 +39,10 @@ export default function SalaryCard({ domain, salaryData }) {
       {salaryData.fastTrack && (
         <div className="mt-4 pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
           <span
-            className="font-mono text-[9px] tracking-[0.15em] px-2 py-1"
-            style={{ backgroundColor: `${color}15`, color, borderRadius: '2px' }}
+            className="text-xs font-medium px-3 py-1"
+            style={{ backgroundColor: `${color}15`, color, borderRadius: '999px' }}
           >
-            FAST TRACK ELIGIBLE
+            Fast track eligible
           </span>
         </div>
       )}

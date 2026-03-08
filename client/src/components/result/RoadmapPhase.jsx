@@ -12,8 +12,8 @@ export default function RoadmapPhase({ phase, defaultExpanded = false, domainCol
       >
         <div className="flex items-center gap-3">
           <span
-            className="font-mono text-xs font-medium w-6 h-6 flex items-center justify-center rounded-sm"
-            style={{ backgroundColor: `${domainColor}20`, color: domainColor }}
+            className="text-xs font-semibold w-6 h-6 flex items-center justify-center"
+            style={{ backgroundColor: `${domainColor}20`, color: domainColor, borderRadius: '8px' }}
           >
             {phase.number}
           </span>
@@ -21,7 +21,7 @@ export default function RoadmapPhase({ phase, defaultExpanded = false, domainCol
             <h4 className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
               {phase.title}
             </h4>
-            <span className="font-mono text-[10px]" style={{ color: 'var(--muted)' }}>
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>
               {phase.duration}
             </span>
           </div>

@@ -29,14 +29,14 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
       <div className="card mt-6 p-6 md:p-8">
         {/* Top row */}
         <div className="flex items-center justify-between mb-6">
-          <span className="font-mono text-[11px] tracking-wider" style={{ color: 'var(--muted)' }}>
-            Q {current} / {total}
+          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+            Question {current} of {total}
           </span>
           <SignalBadge signal={question.signal_type} />
         </div>
 
         {/* Question text */}
-        <h2 className="font-serif text-xl md:text-2xl font-semibold leading-snug mb-8" style={{ color: 'var(--text)' }}>
+        <h2 className="text-xl md:text-2xl font-semibold leading-snug mb-8" style={{ color: 'var(--text)' }}>
           {question.question_text}
         </h2>
 
@@ -60,11 +60,13 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
           <button
             onClick={onGoBack}
             disabled={!canGoBack}
-            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded transition-all duration-150 cursor-pointer"
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 transition-all duration-150 cursor-pointer"
             style={{
               color: canGoBack ? 'var(--text)' : 'var(--muted)',
               opacity: canGoBack ? 1 : 0.4,
               backgroundColor: canGoBack ? 'var(--surface2)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -74,19 +76,21 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
           </button>
 
           {isReAnswering && (
-            <span className="text-[11px] font-mono" style={{ color: 'var(--muted)' }}>
-              Tap an option to change your answer
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>
+              Tap to change your answer
             </span>
           )}
 
           <button
             onClick={onGoForward}
             disabled={!canGoForward}
-            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded transition-all duration-150 cursor-pointer"
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 transition-all duration-150 cursor-pointer"
             style={{
               color: canGoForward ? 'var(--text)' : 'var(--muted)',
               opacity: canGoForward ? 1 : 0.4,
               backgroundColor: canGoForward ? 'var(--surface2)' : 'transparent',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
             }}
           >
             Skip

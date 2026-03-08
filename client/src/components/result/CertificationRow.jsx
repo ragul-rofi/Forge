@@ -1,7 +1,7 @@
 export default function CertificationRow({ certifications, domainColor }) {
   return (
     <div className="card p-4">
-      <h4 className="section-label mb-4">CERTIFICATIONS</h4>
+      <h4 className="section-label mb-4">Certifications</h4>
       <div className="space-y-3">
         {certifications.map((cert, i) => (
           <div key={i} className="flex items-center justify-between gap-2">
