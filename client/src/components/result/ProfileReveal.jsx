@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { PROFILE_ICONS } from '../../lib/constants'
 import { PROFILE_NAMES, PROFILE_DESCRIPTIONS } from '../../lib/profiles'
-import * as Icons from 'lucide-react'
+import { Hammer, Brain, Shield, Palette, Crown, Handshake, Telescope, Sparkles } from 'lucide-react'
+
+const ICON_MAP = { Hammer, Brain, Shield, Palette, Crown, Handshake, Telescope, Sparkles }
 
 export default function ProfileReveal({ profile }) {
   const [showProfile, setShowProfile] = useState(false)
@@ -10,7 +12,7 @@ export default function ProfileReveal({ profile }) {
 
   const description = PROFILE_DESCRIPTIONS[profile] || ''
   const iconName = PROFILE_ICONS[profile] || 'Sparkles'
-  const ProfileIcon = Icons[iconName] || Icons.Sparkles
+  const ProfileIcon = ICON_MAP[iconName] || Sparkles
   const name = PROFILE_NAMES[profile] || profile?.toUpperCase()
 
   useEffect(() => {
