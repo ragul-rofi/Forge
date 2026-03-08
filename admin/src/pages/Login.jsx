@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
 import { ArrowRight } from 'lucide-react'
+import Logo from '../components/ui/Logo'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -29,9 +30,9 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'var(--bg)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>
-            FORGE
-          </h1>
+          <div className="flex justify-center mb-3">
+            <Logo height={40} />
+          </div>
           <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>Admin Panel</p>
         </div>
 

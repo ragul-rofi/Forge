@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuiz } from '../hooks/useQuiz'
 import { ArrowRight } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
+import Logo from '../components/ui/Logo'
 import PathSelector from '../components/quiz/PathSelector'
 import GatewayQuestion from '../components/quiz/GatewayQuestion'
 import QuizCard from '../components/quiz/QuizCard'
@@ -117,7 +118,7 @@ export default function Quiz() {
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
         <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
-          <span className="text-xl font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>FORGE</span>
+          <Logo height={28} />
           <ThemeToggle />
         </nav>
         <div className="px-6 pb-16 pt-8 max-w-md mx-auto fade-in">
@@ -163,15 +164,14 @@ export default function Quiz() {
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
         <span
-          className="text-xl font-[800] tracking-tighter cursor-pointer"
-          style={{ color: 'var(--text)' }}
+          className="cursor-pointer"
           onClick={() => {
             if (confirm('Leave the quiz? Your progress will be saved.')) {
               navigate('/')
             }
           }}
         >
-          FORGE
+          <Logo height={28} />
         </span>
         <ThemeToggle />
       </nav>

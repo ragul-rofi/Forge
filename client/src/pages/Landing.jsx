@@ -6,6 +6,7 @@ import {
   Palette, Network, Briefcase, DatabaseZap,
 } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
+import Logo from '../components/ui/Logo'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 
 const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
@@ -36,9 +37,7 @@ export default function Landing() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
-        <span className="text-xl font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>
-          FORGE
-        </span>
+        <Logo height={32} />
         <ThemeToggle />
       </nav>
 
@@ -239,9 +238,10 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t px-6 py-8" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-xs" style={{ color: 'var(--muted)' }}>
-            FORGE · {new Date().getFullYear()}
-          </span>
+          <div className="flex items-center gap-2">
+            <Logo height={14} />
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>· {new Date().getFullYear()}</span>
+          </div>
           <span className="text-xs" style={{ color: 'var(--muted)' }}>
             Built for students who don't settle.
           </span>

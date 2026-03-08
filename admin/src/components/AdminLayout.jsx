@@ -3,6 +3,7 @@ import { useAdmin } from '../hooks/useAdmin'
 import { LayoutDashboard, Users, FileQuestion, BarChart3, LogOut, Menu, X } from 'lucide-react'
 import ThemeToggle from './ui/ThemeToggle'
 import Badge from './ui/Badge'
+import Logo from './ui/Logo'
 import { useState } from 'react'
 
 const navLinks = [
@@ -32,9 +33,7 @@ export default function AdminLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           {/* Left */}
           <div className="flex items-center gap-3">
-            <span className="text-lg font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>
-              FORGE
-            </span>
+            <Logo height={22} />
             <Badge color="#a78bfa">ADMIN</Badge>
           </div>
 

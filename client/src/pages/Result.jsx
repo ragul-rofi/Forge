@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { DOMAIN_ROADMAPS } from '../data/roadmaps'
 import ThemeToggle from '../components/ui/ThemeToggle'
+import Logo from '../components/ui/Logo'
 import ProfileReveal from '../components/result/ProfileReveal'
 import DomainCard from '../components/result/DomainCard'
 import SalaryCard from '../components/result/SalaryCard'
@@ -154,8 +155,8 @@ export default function Result() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
-        <Link to="/" className="text-xl font-[800] tracking-tighter no-underline" style={{ color: 'var(--text)' }}>
-          FORGE
+        <Link to="/" className="no-underline">
+          <Logo height={28} />
         </Link>
         <ThemeToggle />
       </nav>
@@ -268,7 +269,10 @@ export default function Result() {
 
       {/* Footer */}
       <footer className="text-center py-8 border-t" style={{ borderColor: 'var(--border)' }}>
-        <span className="text-sm" style={{ color: 'var(--muted)' }}>FORGE · {new Date().getFullYear()}</span>
+        <div className="inline-flex items-center gap-2">
+          <Logo height={14} />
+          <span className="text-sm" style={{ color: 'var(--muted)' }}>· {new Date().getFullYear()}</span>
+        </div>
       </footer>
     </div>
   )
