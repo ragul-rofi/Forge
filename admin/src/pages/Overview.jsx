@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
-import { DOMAIN_COLORS, DOMAIN_NAMES } from '../../lib/constants'
-import { PROFILE_NAMES } from '../../lib/profiles'
-import StatsCard from '../../components/admin/StatsCard'
-import AnalyticsChart from '../../components/admin/AnalyticsChart'
+import { supabase } from '../lib/supabase'
+import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
+import { PROFILE_NAMES } from '../lib/profiles'
+import StatsCard from '../components/StatsCard'
+import AnalyticsChart from '../components/AnalyticsChart'
 
 export default function Overview() {
   const [stats, setStats] = useState({

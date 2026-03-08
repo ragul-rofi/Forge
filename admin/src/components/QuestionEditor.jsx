@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 import OptionScoreEditor from './OptionScoreEditor'
 
 const SIGNAL_TYPES = ['interest', 'aptitude', 'mindset', 'priority', 'motivation', 'validation']

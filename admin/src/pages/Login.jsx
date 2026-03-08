@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAdmin } from '../../hooks/useAdmin'
+import { useAdmin } from '../hooks/useAdmin'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true)
     try {
       await signIn(email, password)
-      navigate('/admin')
+      navigate('/')
     } catch (err) {
       setError(err.message || 'Invalid credentials')
     } finally {

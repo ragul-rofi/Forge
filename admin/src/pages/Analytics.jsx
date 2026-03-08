@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../../lib/supabase'
-import { DOMAIN_COLORS, DOMAIN_NAMES } from '../../lib/constants'
-import AnalyticsChart from '../../components/admin/AnalyticsChart'
+import { supabase } from '../lib/supabase'
+import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
+import AnalyticsChart from '../components/AnalyticsChart'
 
 const TIME_RANGES = [
   { label: '7 days', days: 7 },
@@ -101,7 +101,6 @@ export default function Analytics() {
   const motivationData = useMemo(() => {
     const counts = { Fear: 0, Confusion: 0, Curiosity: 0, Urgency: 0 }
     filtered.forEach((s) => {
-      // Check answers for Q12-style data (motivation question)
       const answers = typeof s.answers === 'string' ? JSON.parse(s.answers || '[]') : (s.answers || [])
       const motivationAns = answers.find((a) => a.signal === 'motivation')
       if (motivationAns) {
@@ -160,7 +159,6 @@ export default function Analytics() {
       const redirected = validateSessions.filter((s) => s.validate_verdict === 'redirect')
       const pct = Math.round((redirected.length / validateSessions.length) * 100)
       if (pct > 20) {
-        // Find most common redirect target
         const targets = {}
         redirected.forEach((s) => {
           if (s.validate_target) targets[s.validate_target] = (targets[s.validate_target] || 0) + 1

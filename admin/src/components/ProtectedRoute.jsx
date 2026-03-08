@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
-import { useAdmin } from '../../hooks/useAdmin'
-import LoadingDots from '../ui/LoadingDots'
+import { useAdmin } from '../hooks/useAdmin'
+import LoadingDots from './ui/LoadingDots'
 
 export default function ProtectedRoute({ children }) {
   const { user, loading } = useAdmin()
@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children }) {
     )
   }
 
-  if (!user) return <Navigate to="/admin/login" replace />
+  if (!user) return <Navigate to="/login" replace />
 
   return children
 }

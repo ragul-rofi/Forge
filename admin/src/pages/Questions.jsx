@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
-import QuestionEditor from '../../components/admin/QuestionEditor'
+import { supabase } from '../lib/supabase'
+import QuestionEditor from '../components/QuestionEditor'
 
 const MODE_GROUPS = [
   { label: 'Gateway', type: 'gateway' },
@@ -50,7 +50,7 @@ export default function Questions() {
       console.error('Fetch questions error:', err)
 
       // Use seed data as fallback
-      const { GATEWAY_QUESTIONS, GENERAL_QUESTIONS, ADVANCED_QUESTIONS, VALIDATE_QUESTIONS } = await import('../../data/questions.js')
+      const { GATEWAY_QUESTIONS, GENERAL_QUESTIONS, ADVANCED_QUESTIONS, VALIDATE_QUESTIONS } = await import('../data/questions.js')
       const all = [
         ...GATEWAY_QUESTIONS.map((q, i) => ({ ...q, id: `gw-${i}`, question_type: 'gateway', display_order: i + 1 })),
         ...GENERAL_QUESTIONS.map((q, i) => ({ ...q, id: `gen-${i}`, question_type: 'general', display_order: i + 1 })),

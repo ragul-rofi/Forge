@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
-import StudentTable from '../../components/admin/StudentTable'
+import { supabase } from '../lib/supabase'
+import StudentTable from '../components/StudentTable'
 
 export default function Students() {
   const [sessions, setSessions] = useState([])

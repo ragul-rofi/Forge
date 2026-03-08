@@ -1,14 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useAdmin } from '../../hooks/useAdmin'
-import ThemeToggle from '../ui/ThemeToggle'
-import Badge from '../ui/Badge'
+import { useAdmin } from '../hooks/useAdmin'
+import ThemeToggle from './ui/ThemeToggle'
+import Badge from './ui/Badge'
 import { useState } from 'react'
 
 const navLinks = [
-  { to: '/admin', label: 'Overview', end: true },
-  { to: '/admin/students', label: 'Students' },
-  { to: '/admin/questions', label: 'Questions' },
-  { to: '/admin/analytics', label: 'Analytics' },
+  { to: '/', label: 'Overview', end: true },
+  { to: '/students', label: 'Students' },
+  { to: '/questions', label: 'Questions' },
+  { to: '/analytics', label: 'Analytics' },
 ]
 
 export default function AdminLayout() {
@@ -18,7 +18,7 @@ export default function AdminLayout() {
 
   const handleLogout = async () => {
     await signOut()
-    navigate('/admin/login')
+    navigate('/login')
   }
 
   return (

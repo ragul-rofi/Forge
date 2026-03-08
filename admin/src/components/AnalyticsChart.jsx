@@ -4,13 +4,6 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 
-const CHART_TYPES = {
-  bar: BarChart,
-  line: LineChart,
-  pie: PieChart,
-  radar: RadarChart,
-}
-
 export default function AnalyticsChart({
   type = 'bar',
   data = [],

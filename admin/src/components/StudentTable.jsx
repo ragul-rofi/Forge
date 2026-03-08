@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
-import { DOMAIN_COLORS, DOMAIN_NAMES } from '../../lib/constants'
-import { PROFILE_NAMES } from '../../lib/profiles'
-import Badge from '../ui/Badge'
-import DomainDot from '../ui/DomainDot'
+import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
+import { PROFILE_NAMES } from '../lib/profiles'
+import Badge from './ui/Badge'
+import DomainDot from './ui/DomainDot'
 
 const PAGE_SIZE = 25
 
