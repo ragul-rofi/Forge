@@ -209,3 +209,20 @@ input:focus, select:focus, textarea:focus {
 .loading-dots span:nth-child(3) {
   animation-delay: 0.4s;
 }
+
+/* Marquee */
+.marquee-track {
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-content {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marqueeScroll 30s linear infinite;
+}
+
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}

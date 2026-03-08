@@ -1,98 +1,426 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import ThemeToggle from '../components/ui/ThemeToggle'
+import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
+
+const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
+  key,
+  name,
+  color: DOMAIN_COLORS[key],
+}))
+
+const STEPS = [
+  { num: '01', title: 'Answer honestly', desc: 'No right or wrong. Just how you actually think.' },
+  { num: '02', title: 'We read the signals', desc: 'What you enjoy, avoid, and naturally lean toward.' },
+  { num: '03', title: 'Get your domain', desc: 'A real match — with salary data, roadmap, and next step.' },
+]
 
 export default function Landing() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+      <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <span className="text-xl font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>
           FORGE
         </span>
         <ThemeToggle />
       </nav>
 
-      {/* Hero Section */}
-      <section className="fade-in flex flex-col items-center justify-center text-center px-6 pt-16 pb-24 md:pt-28 md:pb-32">
-        <span className="section-label mb-6">STUDENT CAREER PROFILER</span>
+      {/* Hero */}
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 md:pt-32 md:pb-40 overflow-hidden">
+        {/* Floating domain dots background */}
+        <DomainOrbit />
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-[800] tracking-tight leading-none mb-8">
-          <span style={{ color: 'var(--muted)' }}>Don't find your path.</span>
-          <br />
-          <span style={{ color: 'var(--text)' }}>Forge it.</span>
-        </h1>
+        <RevealOnScroll>
+          <span className="section-label mb-8 block">STUDENT CAREER PROFILER</span>
+        </RevealOnScroll>
 
-        <p className="text-base max-w-md mb-10" style={{ color: 'var(--muted)' }}>
-          12 questions. No jargon. No guessing. Just an honest look at
-          who you are — and where that actually leads in tech.
-        </p>
+        <RevealOnScroll delay={80}>
+          <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-[800] tracking-tight leading-[0.95] mb-8 relative z-10">
+            <span style={{ color: 'var(--muted)' }}>Don't find</span>
+            <br />
+            <span style={{ color: 'var(--muted)' }}>your path.</span>
+            <br />
+            <span className="relative" style={{ color: 'var(--text)' }}>
+              Forge it
+              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none">
+                <path d="M0 3 Q50 0 100 3 Q150 6 200 3" stroke="var(--text)" strokeWidth="2" fill="none" opacity="0.3" />
+              </svg>
+            </span>
+          </h1>
+        </RevealOnScroll>
 
-        {/* Stat chips */}
-        <div className="flex items-center gap-3 mb-10 flex-wrap justify-center">
-          <StatChip>8 DOMAINS</StatChip>
-          <span style={{ color: 'var(--border2)' }}>|</span>
-          <StatChip>3 PATHS</StatChip>
-          <span style={{ color: 'var(--border2)' }}>|</span>
-          <StatChip>REAL SALARY DATA</StatChip>
-        </div>
+        <RevealOnScroll delay={160}>
+          <p className="text-base md:text-lg max-w-lg mb-12 leading-relaxed relative z-10" style={{ color: 'var(--muted)' }}>
+            12 questions. No jargon. No guessing.<br className="hidden md:block" />
+            Just an honest look at who you are — and where that leads in tech.
+          </p>
+        </RevealOnScroll>
 
-        {/* CTA */}
-        <Link to="/quiz" className="btn-primary text-lg px-10 py-4 no-underline inline-block mb-4">
-          Find My Path →
-        </Link>
-        <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          Takes 4–12 minutes.
-        </p>
+        <RevealOnScroll delay={240}>
+          <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block relative z-10 group">
+            <span className="inline-flex items-center gap-2">
+              Find My Path
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </span>
+          </Link>
+          <p className="text-xs mt-4" style={{ color: 'var(--muted)' }}>
+            No sign-up required · Takes 4–12 min
+          </p>
+        </RevealOnScroll>
       </section>
 
-      {/* Feature Cards */}
-      <section className="max-w-4xl mx-auto px-6 pb-24">
+      {/* Scrolling domain marquee */}
+      <section className="border-y overflow-hidden py-4" style={{ borderColor: 'var(--border)' }}>
+        <DomainMarquee />
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-4xl mx-auto px-6 py-24 md:py-32">
+        <RevealOnScroll>
+          <span className="section-label block mb-4">HOW IT WORKS</span>
+          <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
+            Three steps. Zero fluff.
+          </h2>
+        </RevealOnScroll>
+
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          {STEPS.map((step, i) => (
+            <RevealOnScroll key={step.num} delay={i * 100}>
+              <div className="relative">
+                <span className="font-mono text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
+                  style={{ color: 'var(--border)', opacity: 0.5 }}>
+                  {step.num}
+                </span>
+                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                  {step.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                  {step.desc}
+                </p>
+              </div>
+            </RevealOnScroll>
+          ))}
+        </div>
+      </section>
+
+      {/* Domain grid */}
+      <section className="max-w-5xl mx-auto px-6 pb-24 md:pb-32">
+        <RevealOnScroll>
+          <span className="section-label block mb-4">8 DOMAINS</span>
+          <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
+            Where you could land.
+          </h2>
+          <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
+            Each one comes with real salary data, difficulty ratings, and a phase-by-phase roadmap.
+          </p>
+        </RevealOnScroll>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {DOMAINS.map((d, i) => (
+            <RevealOnScroll key={d.key} delay={i * 50}>
+              <DomainCard domain={d} />
+            </RevealOnScroll>
+          ))}
+        </div>
+      </section>
+
+      {/* What you get section */}
+      <section className="border-t" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
+        <div className="max-w-4xl mx-auto px-6 py-24 md:py-32">
+          <RevealOnScroll>
+            <span className="section-label block mb-4">WHAT YOU WALK AWAY WITH</span>
+            <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
+              Not just a label. A plan.
+            </h2>
+          </RevealOnScroll>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <RevealOnScroll delay={0}>
+              <ResultPreviewCard
+                icon={<IconTarget />}
+                title="Your domain match"
+                desc="Based on how you think — not what you know. Primary + secondary domain."
+              />
+            </RevealOnScroll>
+            <RevealOnScroll delay={80}>
+              <ResultPreviewCard
+                icon={<IconChart />}
+                title="Real salary ranges"
+                desc="No hype. Actual entry, mid, and senior numbers for your domain in India."
+              />
+            </RevealOnScroll>
+            <RevealOnScroll delay={160}>
+              <ResultPreviewCard
+                icon={<IconMap />}
+                title="Phase-by-phase roadmap"
+                desc="Certifications, tools, and projects — broken into 3 clear phases."
+              />
+            </RevealOnScroll>
+            <RevealOnScroll delay={240}>
+              <ResultPreviewCard
+                icon={<IconZap />}
+                title="One concrete next step"
+                desc="Not a list. A single thing you can do this week to start."
+              />
+            </RevealOnScroll>
+          </div>
+        </div>
+      </section>
+
+      {/* Three paths preview */}
+      <section className="max-w-4xl mx-auto px-6 py-24 md:py-32">
+        <RevealOnScroll>
+          <span className="section-label block mb-4">3 QUIZ MODES</span>
+          <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
+            Pick your starting point.
+          </h2>
+          <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
+            Whether you're lost, exploring, or already have a direction — there's a mode for you.
+          </p>
+        </RevealOnScroll>
+
         <div className="grid md:grid-cols-3 gap-4">
-          <FeatureCard
-            title="No tech knowledge needed"
-            description="Questions are about how you think, not what you know."
-          />
-          <FeatureCard
-            title="Honest about difficulty and salary"
-            description="We show you real numbers and real timelines. No hype."
-          />
-          <FeatureCard
-            title="A roadmap, not a list"
-            description="You leave with phases, certifications, and one next step."
-          />
+          <RevealOnScroll delay={0}>
+            <PathCard
+              label="NO IDEA"
+              title="Start from scratch"
+              desc="12 questions · ~5 min"
+              detail="Figure out who you are first."
+            />
+          </RevealOnScroll>
+          <RevealOnScroll delay={100}>
+            <PathCard
+              label="ROUGH IDEA"
+              title="Go deeper"
+              desc="25 questions · ~12 min"
+              detail="Cut through the noise."
+            />
+          </RevealOnScroll>
+          <RevealOnScroll delay={200}>
+            <PathCard
+              label="ALREADY DECIDED"
+              title="Test my choice"
+              desc="8 questions · ~4 min"
+              detail="Honest fit check."
+            />
+          </RevealOnScroll>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-3xl mx-auto px-6 py-24 md:py-32 text-center">
+          <RevealOnScroll>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-[800] tracking-tight leading-[1.05] mb-6" style={{ color: 'var(--text)' }}>
+              Stop scrolling.<br />Start building.
+            </h2>
+            <p className="text-base mb-10 max-w-sm mx-auto" style={{ color: 'var(--muted)' }}>
+              You already know you're curious. That's enough.
+            </p>
+            <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block group">
+              <span className="inline-flex items-center gap-2">
+                Take the Quiz
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </span>
+            </Link>
+          </RevealOnScroll>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="text-center py-8 border-t" style={{ borderColor: 'var(--border)' }}>
-        <span className="text-sm" style={{ color: 'var(--muted)' }}>
-          FORGE · {new Date().getFullYear()}
-        </span>
+      <footer className="border-t px-6 py-8" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <span className="text-xs font-mono tracking-wider" style={{ color: 'var(--muted)' }}>
+            FORGE · {new Date().getFullYear()}
+          </span>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>
+            Built for students who don't settle.
+          </span>
+        </div>
       </footer>
     </div>
   )
 }
 
-function StatChip({ children }) {
+/* ——— Sub-components ——— */
+
+function RevealOnScroll({ children, delay = 0 }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <span
-      className="font-mono text-[10px] tracking-[0.15em] px-3 py-1.5 border"
-      style={{ borderColor: 'var(--border2)', color: 'var(--muted2)', borderRadius: '2px' }}
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 600ms ease ${delay}ms, transform 600ms ease ${delay}ms`,
+      }}
     >
       {children}
-    </span>
+    </div>
   )
 }
 
-function FeatureCard({ title, description }) {
+function DomainOrbit() {
   return (
-    <div className="card">
-      <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text)' }}>
-        {title}
-      </h3>
-      <p className="text-sm" style={{ color: 'var(--muted)' }}>
-        {description}
-      </p>
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.12 }}>
+      {DOMAINS.map((d, i) => {
+        const angle = (i / DOMAINS.length) * Math.PI * 2
+        const radius = 260
+        const x = Math.cos(angle) * radius
+        const y = Math.sin(angle) * radius
+        return (
+          <div
+            key={d.key}
+            className="absolute rounded-full animate-pulse"
+            style={{
+              width: 10 + (i % 3) * 6,
+              height: 10 + (i % 3) * 6,
+              backgroundColor: d.color,
+              left: `calc(50% + ${x}px)`,
+              top: `calc(50% + ${y}px)`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: '3s',
+            }}
+          />
+        )
+      })}
+      {/* Orbit ring */}
+      <div
+        className="absolute rounded-full border"
+        style={{
+          width: 520,
+          height: 520,
+          borderColor: 'var(--border)',
+          opacity: 0.5,
+        }}
+      />
     </div>
+  )
+}
+
+function DomainMarquee() {
+  const items = [...DOMAINS, ...DOMAINS, ...DOMAINS]
+
+  return (
+    <div className="marquee-track">
+      <div className="marquee-content">
+        {items.map((d, i) => (
+          <span key={`${d.key}-${i}`} className="inline-flex items-center gap-2 mx-6 whitespace-nowrap">
+            <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
+            <span className="font-mono text-xs tracking-wider" style={{ color: 'var(--muted2)' }}>
+              {d.name.toUpperCase()}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DomainCard({ domain }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <div
+      className="card cursor-default group relative overflow-hidden"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ padding: '20px' }}
+    >
+      {/* Color accent bar */}
+      <div
+        className="absolute top-0 left-0 w-full h-[2px] transition-all duration-300"
+        style={{
+          backgroundColor: domain.color,
+          opacity: hovered ? 1 : 0.4,
+          transform: hovered ? 'scaleX(1)' : 'scaleX(0.3)',
+          transformOrigin: 'left',
+        }}
+      />
+      <div className="flex items-center gap-3">
+        <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: domain.color }} />
+        <span className="text-sm font-medium" style={{ color: hovered ? 'var(--text)' : 'var(--muted2)' }}>
+          {domain.name}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ResultPreviewCard({ icon, title, desc }) {
+  return (
+    <div className="card flex gap-4 items-start" style={{ padding: '24px' }}>
+      <div className="shrink-0 mt-0.5" style={{ color: 'var(--muted2)' }}>
+        {icon}
+      </div>
+      <div>
+        <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>{title}</h3>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+function PathCard({ label, title, desc, detail }) {
+  return (
+    <div className="card flex flex-col h-full" style={{ padding: '24px' }}>
+      <span className="font-mono text-[9px] tracking-[0.2em] mb-3 block" style={{ color: 'var(--muted)' }}>
+        {label}
+      </span>
+      <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>{title}</h3>
+      <p className="font-mono text-[11px] tracking-wider mb-3" style={{ color: 'var(--muted2)' }}>{desc}</p>
+      <p className="text-sm mt-auto" style={{ color: 'var(--muted)' }}>{detail}</p>
+    </div>
+  )
+}
+
+/* ——— Icons ——— */
+function IconTarget() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+    </svg>
+  )
+}
+
+function IconChart() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  )
+}
+
+function IconMap() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
+    </svg>
+  )
+}
+
+function IconZap() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
   )
 }
