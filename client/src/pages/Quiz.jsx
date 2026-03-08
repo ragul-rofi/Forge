@@ -21,6 +21,8 @@ export default function Quiz() {
     isReAnswering,
     previousAnswer,
     submitStudentInfo,
+    submitEmail,
+    proceedToGateway,
     selectMode,
     answerGateway,
     answerQuestion,
@@ -39,10 +41,17 @@ export default function Quiz() {
   const [formError, setFormError] = useState('')
   const [selectedDomain, setSelectedDomain] = useState(state.validateTarget || '')
   const [saving, setSaving] = useState(false)
+  const [emailGateValue, setEmailGateValue] = useState('')
+  const [emailGateError, setEmailGateError] = useState('')
 
-  // When quiz is done, save session and navigate to result
+  // When quiz is done, handle differently based on mode
   useEffect(() => {
     if (state.phase === 'done' && state.result) {
+      // For general mode, wait for email gate
+      if (state.mode === 'general' && !state.studentInfo.email) {
+        return // Show email gate instead
+      }
+      // For advanced/validate, save immediately
       setSaving(true)
       saveSession().then(sessionId => {
         setSaving(false)
@@ -51,7 +60,24 @@ export default function Quiz() {
         }
       })
     }
-  }, [state.phase, state.result])
+  }, [state.phase, state.result, state.studentInfo.email])
+
+  const handleEmailGateSubmit = (e) => {
+    e.preventDefault()
+    setEmailGateError('')
+    if (!emailGateValue.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailGateValue)) {
+      setEmailGateError('Please enter a valid email address.')
+      return
+    }
+    submitEmail(emailGateValue)
+    setSaving(true)
+    saveSession(emailGateValue).then(sessionId => {
+      setSaving(false)
+      if (sessionId) {
+        navigate(`/result/${sessionId}`)
+      }
+    })
+  }
 
   const handleSubmitInfo = (e) => {
     e.preventDefault()
@@ -59,10 +85,6 @@ export default function Quiz() {
 
     if (!formData.name.trim()) {
       setFormError('Please enter your name.')
-      return
-    }
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setFormError('Please enter a valid email address.')
       return
     }
     if (!formData.year) {
@@ -76,7 +98,7 @@ export default function Quiz() {
   const domainColor = state.validateTarget ? DOMAIN_COLORS[state.validateTarget] : null
 
   // Render based on phase
-  if (saving || (state.phase === 'done' && state.result)) {
+  if (saving) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="text-center">
@@ -84,6 +106,52 @@ export default function Quiz() {
             Calculating your result...
           </h2>
           <LoadingDots />
+        </div>
+      </div>
+    )
+  }
+
+  // Email gate for general mode — quiz done but no email yet
+  if (state.phase === 'done' && state.result && state.mode === 'general' && !state.studentInfo.email) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+        <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
+          <span className="text-xl font-[800] tracking-tighter" style={{ color: 'var(--text)' }}>FORGE</span>
+          <ThemeToggle />
+        </nav>
+        <div className="px-6 pb-16 pt-8 max-w-md mx-auto fade-in">
+          <div className="text-center mb-8">
+            <span className="text-4xl block mb-4">🎉</span>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              Your result is ready.
+            </h2>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              Enter your email to see your domain, roadmap, and salary data.
+              We'll also send you a copy.
+            </p>
+          </div>
+          <form onSubmit={handleEmailGateSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address *</label>
+              <input
+                type="email"
+                value={emailGateValue}
+                onChange={e => setEmailGateValue(e.target.value)}
+                placeholder="you@email.com"
+                autoFocus
+                required
+              />
+            </div>
+            {emailGateError && (
+              <p className="text-sm text-red-400">{emailGateError}</p>
+            )}
+            <button type="submit" className="btn-primary mt-2">
+              Show My Results →
+            </button>
+            <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
+              Your email is used only to send your results. No spam. Ever.
+            </p>
+          </form>
         </div>
       </div>
     )
@@ -115,7 +183,7 @@ export default function Quiz() {
               Let's start with you.
             </h2>
             <p className="text-sm mb-8" style={{ color: 'var(--muted)' }}>
-              Just the basics — nothing else.
+              Just the basics — no email required to start.
             </p>
 
             <form onSubmit={handleSubmitInfo} className="flex flex-col gap-4">
@@ -126,16 +194,6 @@ export default function Quiz() {
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Your full name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="you@email.com"
                   required
                 />
               </div>
@@ -171,10 +229,6 @@ export default function Quiz() {
               <button type="submit" className="btn-primary mt-2">
                 Continue →
               </button>
-
-              <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
-                Your email is used only to send your results. We don't spam.
-              </p>
             </form>
           </div>
         )}
@@ -186,6 +240,53 @@ export default function Quiz() {
             selectedDomain={selectedDomain}
             onDomainChange={setSelectedDomain}
           />
+        )}
+
+        {/* Step 1.5: Email collection for advanced/validate modes */}
+        {state.phase === 'collect_email' && (
+          <div className="fade-in w-full max-w-md mx-auto">
+            <h2 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              One more thing.
+            </h2>
+            <p className="text-sm mb-8" style={{ color: 'var(--muted)' }}>
+              This quiz mode gives detailed results — we'll email you a copy too.
+            </p>
+
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              setFormError('')
+              if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                setFormError('Please enter a valid email address.')
+                return
+              }
+              submitEmail(formData.email)
+              proceedToGateway()
+            }} className="flex flex-col gap-4">
+              <div>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address *</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="you@email.com"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              {formError && (
+                <p className="text-sm text-red-400">{formError}</p>
+              )}
+
+              <button type="submit" className="btn-primary mt-2">
+                Start Quiz →
+              </button>
+
+              <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
+                Your email is used only to send your results. No spam.
+              </p>
+            </form>
+          </div>
         )}
 
         {/* Step 2: Gateway Questions */}

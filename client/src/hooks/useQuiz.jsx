@@ -53,12 +53,27 @@ export function useQuiz() {
     }))
   }, [])
 
+  const submitEmail = useCallback(async (email) => {
+    setState(prev => ({
+      ...prev,
+      studentInfo: { ...prev.studentInfo, email },
+    }))
+  }, [])
+
+  const proceedToGateway = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      phase: 'gateway',
+    }))
+  }, [])
+
   const selectMode = useCallback((mode, validateTarget = null) => {
     setState(prev => ({
       ...prev,
       mode,
       validateTarget,
-      phase: 'gateway',
+      // For advanced and validate, we need email before starting
+      phase: (mode === 'advanced' || mode === 'validate') ? 'collect_email' : 'gateway',
     }))
   }, [])
 
@@ -189,11 +204,12 @@ export function useQuiz() {
     })
   }, [])
 
-  const saveSession = useCallback(async () => {
-    if (!state.result || !state.studentInfo.email) return null
+  const saveSession = useCallback(async (emailOverride) => {
+    const email = emailOverride || state.studentInfo.email
+    if (!state.result || !email) return null
 
     const sessionData = {
-      student_email: state.studentInfo.email,
+      student_email: email,
       student_name: state.studentInfo.name,
       year_of_study: state.studentInfo.year,
       department: state.studentInfo.department || null,
@@ -264,6 +280,8 @@ export function useQuiz() {
     isReAnswering,
     previousAnswer,
     submitStudentInfo,
+    submitEmail,
+    proceedToGateway,
     selectMode,
     answerGateway,
     answerQuestion,
