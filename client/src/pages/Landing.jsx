@@ -1,5 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import {
+  ArrowRight, Target, BarChart3, Map, Zap,
+  Cloud, Code2, BrainCircuit, ShieldCheck,
+  Palette, Network, Briefcase, DatabaseZap,
+} from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 
@@ -8,6 +13,17 @@ const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
   name,
   color: DOMAIN_COLORS[key],
 }))
+
+const DOMAIN_META = {
+  cloud:      { icon: Cloud,       tagline: 'Build what runs the internet' },
+  fullstack:  { icon: Code2,       tagline: 'Frontend to backend, end to end' },
+  data:       { icon: DatabaseZap, tagline: 'Turn numbers into decisions' },
+  ai:         { icon: BrainCircuit,tagline: 'Teach machines to think' },
+  cyber:      { icon: ShieldCheck, tagline: 'Defend what others build' },
+  design:     { icon: Palette,     tagline: 'Shape how people experience tech' },
+  networking: { icon: Network,     tagline: 'Connect everything, everywhere' },
+  business:   { icon: Briefcase,   tagline: 'Lead products and teams' },
+}
 
 const STEPS = [
   { num: '01', title: 'Answer honestly', desc: 'No right or wrong. Just how you actually think.' },
@@ -28,7 +44,6 @@ export default function Landing() {
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 md:pt-32 md:pb-40 overflow-hidden">
-        {/* Floating domain dots background */}
         <DomainOrbit />
 
         <RevealOnScroll>
@@ -61,9 +76,7 @@ export default function Landing() {
           <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block relative z-10 group">
             <span className="inline-flex items-center gap-2">
               Find My Path
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
-                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-              </svg>
+              <ArrowRight size={18} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
             </span>
           </Link>
           <p className="text-xs mt-4" style={{ color: 'var(--muted)' }}>
@@ -72,41 +85,38 @@ export default function Landing() {
         </RevealOnScroll>
       </section>
 
-      {/* Scrolling domain marquee */}
-      <section className="border-y overflow-hidden py-4" style={{ borderColor: 'var(--border)' }}>
-        <DomainMarquee />
-      </section>
-
       {/* How it works */}
-      <section className="max-w-4xl mx-auto px-6 py-24 md:py-32">
-        <RevealOnScroll>
-          <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
-            How it works
-          </h2>
-        </RevealOnScroll>
+      <section className="border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-4xl mx-auto px-6 py-24 md:py-32">
+          <RevealOnScroll>
+            <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-16" style={{ color: 'var(--text)' }}>
+              How it works
+            </h2>
+          </RevealOnScroll>
 
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {STEPS.map((step, i) => (
-            <RevealOnScroll key={step.num} delay={i * 100}>
-              <div className="relative">
-                <span className="text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
-                  style={{ color: 'var(--border)', opacity: 0.5 }}>
-                  {step.num}
-                </span>
-                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                  {step.desc}
-                </p>
-              </div>
-            </RevealOnScroll>
-          ))}
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            {STEPS.map((step, i) => (
+              <RevealOnScroll key={step.num} delay={i * 100}>
+                <div className="relative">
+                  <span className="text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
+                    style={{ color: 'var(--border)', opacity: 0.5 }}>
+                    {step.num}
+                  </span>
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                    {step.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                    {step.desc}
+                  </p>
+                </div>
+              </RevealOnScroll>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Domain grid */}
-      <section className="max-w-5xl mx-auto px-6 pb-24 md:pb-32">
+      {/* Domain showcase */}
+      <section className="max-w-5xl mx-auto px-6 py-24 md:py-32">
         <RevealOnScroll>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
             8 domains you could land in
@@ -116,10 +126,10 @@ export default function Landing() {
           </p>
         </RevealOnScroll>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {DOMAINS.map((d, i) => (
-            <RevealOnScroll key={d.key} delay={i * 50}>
-              <DomainCard domain={d} />
+            <RevealOnScroll key={d.key} delay={i * 60}>
+              <DomainShowcard domain={d} />
             </RevealOnScroll>
           ))}
         </div>
@@ -137,28 +147,28 @@ export default function Landing() {
           <div className="grid md:grid-cols-2 gap-4">
             <RevealOnScroll delay={0}>
               <ResultPreviewCard
-                icon={<IconTarget />}
+                icon={<Target size={20} strokeWidth={1.5} />}
                 title="Your domain match"
                 desc="Based on how you think — not what you know. Primary + secondary domain."
               />
             </RevealOnScroll>
             <RevealOnScroll delay={80}>
               <ResultPreviewCard
-                icon={<IconChart />}
+                icon={<BarChart3 size={20} strokeWidth={1.5} />}
                 title="Real salary ranges"
                 desc="No hype. Actual entry, mid, and senior numbers for your domain in India."
               />
             </RevealOnScroll>
             <RevealOnScroll delay={160}>
               <ResultPreviewCard
-                icon={<IconMap />}
+                icon={<Map size={20} strokeWidth={1.5} />}
                 title="Phase-by-phase roadmap"
                 desc="Certifications, tools, and projects — broken into 3 clear phases."
               />
             </RevealOnScroll>
             <RevealOnScroll delay={240}>
               <ResultPreviewCard
-                icon={<IconZap />}
+                icon={<Zap size={20} strokeWidth={1.5} />}
                 title="One concrete next step"
                 desc="Not a list. A single thing you can do this week to start."
               />
@@ -219,9 +229,7 @@ export default function Landing() {
             <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block group">
               <span className="inline-flex items-center gap-2">
                 Take the Quiz
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-1">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
+                <ArrowRight size={18} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
               </span>
             </Link>
           </RevealOnScroll>
@@ -298,7 +306,6 @@ function DomainOrbit() {
           />
         )
       })}
-      {/* Orbit ring */}
       <div
         className="absolute rounded-full border"
         style={{
@@ -312,51 +319,74 @@ function DomainOrbit() {
   )
 }
 
-function DomainMarquee() {
-  const items = [...DOMAINS, ...DOMAINS, ...DOMAINS]
-
-  return (
-    <div className="marquee-track">
-      <div className="marquee-content">
-        {items.map((d, i) => (
-          <span key={`${d.key}-${i}`} className="inline-flex items-center gap-2 mx-6 whitespace-nowrap">
-            <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
-            <span className="text-xs font-medium tracking-wide" style={{ color: 'var(--muted2)' }}>
-              {d.name}
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function DomainCard({ domain }) {
+function DomainShowcard({ domain }) {
   const [hovered, setHovered] = useState(false)
+  const meta = DOMAIN_META[domain.key]
+  const Icon = meta.icon
 
   return (
     <div
       className="card cursor-default group relative overflow-hidden"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ padding: '20px' }}
+      style={{ padding: '28px 24px', minHeight: 160 }}
     >
-      {/* Color accent bar */}
+      {/* Background glow */}
       <div
-        className="absolute top-0 left-0 w-full h-[2px] transition-all duration-300"
+        className="absolute -top-10 -right-10 w-28 h-28 rounded-full transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(circle, ${domain.color}22 0%, transparent 70%)`,
+          opacity: hovered ? 1 : 0,
+        }}
+      />
+
+      {/* Decorative grid dots */}
+      <div className="absolute bottom-3 right-3 grid grid-cols-3 gap-1 transition-opacity duration-500"
+        style={{ opacity: hovered ? 0.15 : 0.05 }}>
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="w-1 h-1 rounded-full" style={{ backgroundColor: domain.color }} />
+        ))}
+      </div>
+
+      {/* Icon container */}
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-all duration-300"
+        style={{
+          backgroundColor: hovered ? `${domain.color}18` : 'var(--surface)',
+          border: `1px solid ${hovered ? `${domain.color}30` : 'var(--border)'}`,
+        }}
+      >
+        <Icon
+          size={20}
+          strokeWidth={1.5}
+          className="transition-colors duration-300"
+          style={{ color: hovered ? domain.color : 'var(--muted2)' }}
+        />
+      </div>
+
+      {/* Name */}
+      <h3
+        className="text-sm font-semibold mb-1.5 transition-colors duration-300"
+        style={{ color: hovered ? 'var(--text)' : 'var(--muted2)' }}
+      >
+        {domain.name}
+      </h3>
+
+      {/* Tagline */}
+      <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>
+        {meta.tagline}
+      </p>
+
+      {/* Bottom accent line */}
+      <div
+        className="absolute bottom-0 left-0 w-full h-[2px] transition-all duration-500"
         style={{
           backgroundColor: domain.color,
-          opacity: hovered ? 1 : 0.4,
-          transform: hovered ? 'scaleX(1)' : 'scaleX(0.3)',
+          opacity: hovered ? 0.8 : 0,
+          transform: hovered ? 'scaleX(1)' : 'scaleX(0)',
           transformOrigin: 'left',
         }}
       />
-      <div className="flex items-center gap-3">
-        <span className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: domain.color }} />
-        <span className="text-sm font-medium" style={{ color: hovered ? 'var(--text)' : 'var(--muted2)' }}>
-          {domain.name}
-        </span>
-      </div>
     </div>
   )
 }
@@ -385,38 +415,5 @@ function PathCard({ label, title, desc, detail }) {
       <p className="text-xs mb-3" style={{ color: 'var(--muted2)' }}>{desc}</p>
       <p className="text-sm mt-auto" style={{ color: 'var(--muted)' }}>{detail}</p>
     </div>
-  )
-}
-
-/* ——— Icons ——— */
-function IconTarget() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-    </svg>
-  )
-}
-
-function IconChart() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  )
-}
-
-function IconMap() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
-    </svg>
-  )
-}
-
-function IconZap() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
   )
 }
