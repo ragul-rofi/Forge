@@ -16,10 +16,16 @@ export default function Quiz() {
     currentGatewayQuestion,
     currentQuestion,
     totalQuestions,
+    canGoBack,
+    canGoForward,
+    isReAnswering,
+    previousAnswer,
     submitStudentInfo,
     selectMode,
     answerGateway,
     answerQuestion,
+    goBack,
+    goForward,
     saveSession,
     resetQuiz,
   } = useQuiz()
@@ -194,7 +200,7 @@ export default function Quiz() {
         {/* Step 3: Quiz Questions */}
         {state.phase === 'quiz' && currentQuestion && (
           <QuizCard
-            key={currentQuestion.id}
+            key={`${currentQuestion.id}-${state.currentQuestionIndex}`}
             question={{
               ...currentQuestion,
               question_text: currentQuestion.question_text.replace(
@@ -206,6 +212,12 @@ export default function Quiz() {
             total={totalQuestions}
             onAnswer={answerQuestion}
             domainColor={domainColor}
+            canGoBack={canGoBack}
+            canGoForward={canGoForward}
+            onGoBack={goBack}
+            onGoForward={goForward}
+            isReAnswering={isReAnswering}
+            previousAnswer={previousAnswer}
           />
         )}
       </div>

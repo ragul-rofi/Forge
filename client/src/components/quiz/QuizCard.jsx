@@ -3,7 +3,7 @@ import OptionButton from './OptionButton'
 import ProgressBar from './ProgressBar'
 import SignalBadge from '../ui/SignalBadge'
 
-export default function QuizCard({ question, current, total, onAnswer, domainColor }) {
+export default function QuizCard({ question, current, total, onAnswer, domainColor, canGoBack, canGoForward, onGoBack, onGoForward, isReAnswering, previousAnswer }) {
   const [selectedOption, setSelectedOption] = useState(null)
   const [transitioning, setTransitioning] = useState(false)
 
@@ -48,10 +48,52 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
               letter={letters[i]}
               text={option.text}
               selected={selectedOption === option.id}
+              previouslySelected={previousAnswer === option.id}
               disabled={!!selectedOption}
               onClick={() => handleSelect(option)}
             />
           ))}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+          <button
+            onClick={onGoBack}
+            disabled={!canGoBack}
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded transition-all duration-150 cursor-pointer"
+            style={{
+              color: canGoBack ? 'var(--text)' : 'var(--muted)',
+              opacity: canGoBack ? 1 : 0.4,
+              backgroundColor: canGoBack ? 'var(--surface2)' : 'transparent',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Back
+          </button>
+
+          {isReAnswering && (
+            <span className="text-[11px] font-mono" style={{ color: 'var(--muted)' }}>
+              Tap an option to change your answer
+            </span>
+          )}
+
+          <button
+            onClick={onGoForward}
+            disabled={!canGoForward}
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded transition-all duration-150 cursor-pointer"
+            style={{
+              color: canGoForward ? 'var(--text)' : 'var(--muted)',
+              opacity: canGoForward ? 1 : 0.4,
+              backgroundColor: canGoForward ? 'var(--surface2)' : 'transparent',
+            }}
+          >
+            Skip
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

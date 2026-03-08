@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function OptionButton({ letter, text, selected, onClick, disabled }) {
+export default function OptionButton({ letter, text, selected, previouslySelected, onClick, disabled }) {
   const [hovering, setHovering] = useState(false)
 
   return (
@@ -13,10 +13,12 @@ export default function OptionButton({ letter, text, selected, onClick, disabled
       style={{
         backgroundColor: selected
           ? 'var(--surface3)'
-          : hovering
+          : previouslySelected
             ? 'var(--surface2)'
-            : 'var(--surface)',
-        borderColor: selected ? 'var(--text)' : 'var(--border)',
+            : hovering
+              ? 'var(--surface2)'
+              : 'var(--surface)',
+        borderColor: selected ? 'var(--text)' : previouslySelected ? 'var(--muted)' : 'var(--border)',
         borderRadius: '2px',
         opacity: disabled && !selected ? 0.5 : 1,
       }}
@@ -24,13 +26,18 @@ export default function OptionButton({ letter, text, selected, onClick, disabled
       <div className="flex items-start gap-3">
         <span
           className="font-mono text-xs mt-0.5 shrink-0"
-          style={{ color: 'var(--muted)' }}
+          style={{ color: previouslySelected ? 'var(--text)' : 'var(--muted)' }}
         >
           {letter.toUpperCase()}
         </span>
         <span className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
           {text}
         </span>
+        {previouslySelected && (
+          <span className="ml-auto text-[10px] font-mono shrink-0 mt-0.5" style={{ color: 'var(--muted)' }}>
+            selected
+          </span>
+        )}
       </div>
     </button>
   )

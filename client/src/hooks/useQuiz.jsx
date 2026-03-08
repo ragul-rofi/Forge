@@ -74,8 +74,20 @@ export function useQuiz() {
 
   const answerQuestion = useCallback(async (questionId, optionId, scores, tag) => {
     setState(prev => {
-      const newAnswers = [...prev.answers, { questionId, optionId, scores: scores || {}, tag }]
       const modeQuestions = getQuestionsForMode(prev.mode, prev.validateTarget)
+      const isReAnswer = prev.currentQuestionIndex < prev.answers.length
+      const newAnswer = { questionId, optionId, scores: scores || {}, tag }
+
+      let newAnswers
+      if (isReAnswer) {
+        // Re-answering a previous question — replace in-place
+        newAnswers = [...prev.answers]
+        newAnswers[prev.currentQuestionIndex] = newAnswer
+      } else {
+        // Answering a new question — append
+        newAnswers = [...prev.answers, newAnswer]
+      }
+
       const nextIndex = prev.currentQuestionIndex + 1
       const completionRate = Math.round((newAnswers.length / modeQuestions.length) * 100)
 
@@ -89,7 +101,8 @@ export function useQuiz() {
           .catch(() => {})
       }
 
-      if (nextIndex >= modeQuestions.length) {
+      // Only finish quiz if we're at the last question AND all questions are answered
+      if (nextIndex >= modeQuestions.length && newAnswers.length >= modeQuestions.length) {
         // Quiz complete — calculate results
         const profileResult = calculateProfile(newAnswers)
         const domainMapping = profileToDomain[profileResult.primary]
@@ -159,6 +172,23 @@ export function useQuiz() {
     })
   }, [])
 
+  const goBack = useCallback(() => {
+    setState(prev => {
+      if (prev.currentQuestionIndex <= 0) return prev
+      return { ...prev, currentQuestionIndex: prev.currentQuestionIndex - 1 }
+    })
+  }, [])
+
+  const goForward = useCallback(() => {
+    setState(prev => {
+      const modeQuestions = getQuestionsForMode(prev.mode, prev.validateTarget)
+      // Can only go forward if that question has been answered already
+      if (prev.currentQuestionIndex >= prev.answers.length) return prev
+      if (prev.currentQuestionIndex >= modeQuestions.length - 1) return prev
+      return { ...prev, currentQuestionIndex: prev.currentQuestionIndex + 1 }
+    })
+  }, [])
+
   const saveSession = useCallback(async () => {
     if (!state.result || !state.studentInfo.email) return null
 
@@ -217,6 +247,11 @@ export function useQuiz() {
     setState(initialState)
   }, [])
 
+  const canGoBack = state.phase === 'quiz' && state.currentQuestionIndex > 0
+  const canGoForward = state.phase === 'quiz' && state.currentQuestionIndex < state.answers.length && state.currentQuestionIndex < totalQuestions - 1
+  const isReAnswering = state.phase === 'quiz' && state.currentQuestionIndex < state.answers.length
+  const previousAnswer = isReAnswering ? state.answers[state.currentQuestionIndex]?.optionId : null
+
   return {
     state,
     questions,
@@ -224,10 +259,16 @@ export function useQuiz() {
     totalQuestions,
     currentGatewayQuestion,
     currentQuestion,
+    canGoBack,
+    canGoForward,
+    isReAnswering,
+    previousAnswer,
     submitStudentInfo,
     selectMode,
     answerGateway,
     answerQuestion,
+    goBack,
+    goForward,
     saveSession,
     resetQuiz,
   }

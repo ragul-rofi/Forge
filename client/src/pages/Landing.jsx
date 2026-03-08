@@ -41,7 +41,7 @@ export default function Landing() {
           Find My Path →
         </Link>
         <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          Takes 4–12 minutes. No signup required to start.
+          Takes 4–12 minutes.
         </p>
       </section>
 
