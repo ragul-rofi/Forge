@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { X, AlertTriangle, Check } from 'lucide-react'
 import OptionScoreEditor from './OptionScoreEditor'
 
 const SIGNAL_TYPES = ['interest', 'aptitude', 'mindset', 'priority', 'motivation', 'validation']
@@ -92,14 +93,14 @@ export default function QuestionEditor({ question, onSave, onClose }) {
             {showPreview ? 'Edit' : 'Preview'}
           </button>
           {onClose && (
-            <button onClick={onClose} className="text-sm" style={{ color: 'var(--muted)' }}>✕</button>
+            <button onClick={onClose} className="text-sm" style={{ color: 'var(--muted)' }}><X size={16} /></button>
           )}
         </div>
       </div>
 
       {/* Warning */}
-      <div className="text-xs px-3 py-2 rounded" style={{ backgroundColor: '#fbbf2410', color: '#fbbf24' }}>
-        ⚠ Editing live questions affects all future quiz sessions. Existing sessions are not affected.
+      <div className="text-xs px-3 py-2 rounded flex items-center gap-2" style={{ backgroundColor: '#fbbf2410', color: '#fbbf24' }}>
+        <AlertTriangle size={14} /> Editing live questions affects all future quiz sessions. Existing sessions are not affected.
       </div>
 
       {showPreview ? (
@@ -241,7 +242,7 @@ export default function QuestionEditor({ question, onSave, onClose }) {
               disabled={saving}
               className="btn-primary"
             >
-              {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes'}
+              {saving ? 'Saving...' : saved ? <><Check size={14} className="inline mr-1" /> Saved</> : 'Save Changes'}
             </button>
           </div>
         </>

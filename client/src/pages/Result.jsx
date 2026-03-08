@@ -10,6 +10,7 @@ import SalaryCard from '../components/result/SalaryCard'
 import RoadmapPhase from '../components/result/RoadmapPhase'
 import CertificationRow from '../components/result/CertificationRow'
 import LoadingDots from '../components/ui/LoadingDots'
+import { ArrowRight, ArrowLeft } from 'lucide-react'
 
 export default function Result() {
   const { sessionId } = useParams()
@@ -137,7 +138,7 @@ export default function Result() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: 'var(--bg)' }}>
         <p style={{ color: 'var(--muted)' }}>{error || 'Session not found'}</p>
-        <Link to="/quiz" className="btn-primary no-underline">Take the Quiz →</Link>
+        <Link to="/quiz" className="btn-primary no-underline inline-flex items-center gap-1">Take the Quiz <ArrowRight size={16} /></Link>
       </div>
     )
   }
@@ -258,8 +259,8 @@ export default function Result() {
           </button>
 
           <div className="text-center pt-4">
-            <Link to="/quiz" className="text-sm no-underline" style={{ color: 'var(--muted)' }}>
-              ← Take the quiz again
+            <Link to="/quiz" className="text-sm no-underline inline-flex items-center gap-1" style={{ color: 'var(--muted)' }}>
+              <ArrowLeft size={14} /> Take the quiz again
             </Link>
           </div>
         </section>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function RoadmapPhase({ phase, defaultExpanded = false, domainColor }) {
   const [expanded, setExpanded] = useState(defaultExpanded)
@@ -26,7 +27,11 @@ export default function RoadmapPhase({ phase, defaultExpanded = false, domainCol
             </span>
           </div>
         </div>
-        <span style={{ color: 'var(--muted)' }}>{expanded ? '−' : '+'}</span>
+        {expanded ? (
+          <ChevronUp size={16} style={{ color: 'var(--muted)' }} />
+        ) : (
+          <ChevronDown size={16} style={{ color: 'var(--muted)' }} />
+        )}
       </button>
 
       {expanded && (
@@ -37,7 +42,7 @@ export default function RoadmapPhase({ phase, defaultExpanded = false, domainCol
           <ul className="space-y-2">
             {phase.tasks.map((task, i) => (
               <li key={i} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text)' }}>
-                <span style={{ color: domainColor }}>→</span>
+                <ArrowRight size={14} className="mt-0.5 shrink-0" style={{ color: domainColor }} />
                 {task}
               </li>
             ))}

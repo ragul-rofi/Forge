@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { PROFILE_NAMES } from '../lib/profiles'
+import { ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import Badge from './ui/Badge'
 import DomainDot from './ui/DomainDot'
 
@@ -82,8 +83,8 @@ export default function StudentTable({ sessions = [], onExport }) {
   }
 
   const SortIcon = ({ col }) => (
-    <span className="ml-1 opacity-40">
-      {sort.key === col ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}
+    <span className="ml-1 opacity-40 inline-flex">
+      {sort.key === col ? (sort.dir === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />) : <ArrowUpDown size={12} />}
     </span>
   )
 
@@ -264,14 +265,14 @@ export default function StudentTable({ sessions = [], onExport }) {
             onClick={() => setPage((p) => p - 1)}
             className="btn-secondary text-xs disabled:opacity-30"
           >
-            ← Prev
+            <ChevronLeft size={14} className="inline mr-1" /> Prev
           </button>
           <button
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
             className="btn-secondary text-xs disabled:opacity-30"
           >
-            Next →
+            Next <ChevronRight size={14} className="inline ml-1" />
           </button>
         </div>
       </div>
@@ -289,7 +290,7 @@ export default function StudentTable({ sessions = [], onExport }) {
               className="absolute top-4 right-4 text-lg"
               style={{ color: 'var(--muted)' }}
             >
-              ✕
+              <X size={18} />
             </button>
             <h3 className="text-lg font-[700] mb-1" style={{ color: 'var(--text)' }}>
               {detailSession.student_name}

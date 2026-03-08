@@ -1,21 +1,23 @@
+import { Sprout, Search, Target } from 'lucide-react'
+
 const PATHS = [
   {
     mode: 'general',
-    emoji: '🌱',
+    icon: Sprout,
     title: 'Start from scratch',
     description: 'No tech knowledge needed — 12 simple questions to find your fit.',
     detail: '12 questions · ~5 min',
   },
   {
     mode: 'advanced',
-    emoji: '🔍',
+    icon: Search,
     title: 'Go deeper',
     description: '25 questions across 5 types. Precise results and a specific roadmap.',
     detail: '25 questions · ~12 min',
   },
   {
     mode: 'validate',
-    emoji: '🎯',
+    icon: Target,
     title: 'Test my choice',
     description: 'Already have a domain? 8 honest questions to see if it really fits.',
     detail: '8 questions · ~4 min',
@@ -52,7 +54,7 @@ export default function PathSelector({ onSelect, selectedDomain, onDomainChange 
             onSelect(path.mode, path.mode === 'validate' ? selectedDomain : null)
           }}>
             <div className="flex items-start gap-4">
-              <span className="text-2xl mt-0.5">{path.emoji}</span>
+              <span className="text-2xl mt-0.5"><path.icon size={24} strokeWidth={1.5} style={{ color: 'var(--text)' }} /></span>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>
                   {path.title}

@@ -20,14 +20,14 @@ export const DOMAIN_NAMES = {
   business: 'Business & Product Management',
 }
 
-export const PROFILE_EMOJIS = {
-  maker: '🔨',
-  thinker: '🧠',
-  protector: '🛡️',
-  creator: '🎨',
-  leader: '👑',
-  helper: '🤝',
-  explorer: '🔭',
+export const PROFILE_ICONS = {
+  maker: 'Hammer',
+  thinker: 'Brain',
+  protector: 'Shield',
+  creator: 'Palette',
+  leader: 'Crown',
+  helper: 'Handshake',
+  explorer: 'Telescope',
 }
 
 export const SIGNAL_COLORS = {

@@ -1,14 +1,15 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
+import { LayoutDashboard, Users, FileQuestion, BarChart3, LogOut, Menu, X } from 'lucide-react'
 import ThemeToggle from './ui/ThemeToggle'
 import Badge from './ui/Badge'
 import { useState } from 'react'
 
 const navLinks = [
-  { to: '/', label: 'Overview', end: true },
-  { to: '/students', label: 'Students' },
-  { to: '/questions', label: 'Questions' },
-  { to: '/analytics', label: 'Analytics' },
+  { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/students', label: 'Students', icon: Users },
+  { to: '/questions', label: 'Questions', icon: FileQuestion },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 export default function AdminLayout() {
@@ -45,7 +46,7 @@ export default function AdminLayout() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `px-3 py-1.5 rounded-md text-sm font-medium no-underline transition-colors ${
+                  `px-3 py-1.5 rounded-md text-sm font-medium no-underline transition-colors inline-flex items-center gap-1.5 ${
                     isActive ? 'bg-white/10' : 'hover:bg-white/5'
                   }`
                 }
@@ -53,6 +54,7 @@ export default function AdminLayout() {
                   color: isActive ? 'var(--text)' : 'var(--muted)',
                 })}
               >
+                <link.icon size={15} />
                 {link.label}
               </NavLink>
             ))}
@@ -63,9 +65,10 @@ export default function AdminLayout() {
             <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="text-sm px-3 py-1.5 rounded-md transition-colors hover:bg-white/5 hidden md:block"
+              className="text-sm px-3 py-1.5 rounded-md transition-colors hover:bg-white/5 hidden md:inline-flex items-center gap-1.5"
               style={{ color: 'var(--muted)' }}
             >
+              <LogOut size={15} />
               Logout
             </button>
             {/* Mobile hamburger */}
@@ -74,13 +77,7 @@ export default function AdminLayout() {
               className="md:hidden p-1"
               style={{ color: 'var(--text)' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                {menuOpen ? (
-                  <path d="M6 6l12 12M6 18L18 6" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -95,20 +92,22 @@ export default function AdminLayout() {
                 end={link.end}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-sm no-underline ${isActive ? 'bg-white/10' : ''}`
+                  `flex items-center gap-2 px-3 py-2 rounded-md text-sm no-underline ${isActive ? 'bg-white/10' : ''}`
                 }
                 style={({ isActive }) => ({
                   color: isActive ? 'var(--text)' : 'var(--muted)',
                 })}
               >
+                <link.icon size={15} />
                 {link.label}
               </NavLink>
             ))}
             <button
               onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-white/5"
+              className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-white/5"
               style={{ color: 'var(--muted)' }}
             >
+              <LogOut size={15} />
               Logout
             </button>
           </div>

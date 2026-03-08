@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { PROFILE_EMOJIS } from '../../lib/constants'
+import { PROFILE_ICONS } from '../../lib/constants'
 import { PROFILE_NAMES, PROFILE_DESCRIPTIONS } from '../../lib/profiles'
+import * as Icons from 'lucide-react'
 
 export default function ProfileReveal({ profile }) {
   const [showProfile, setShowProfile] = useState(false)
@@ -8,7 +9,8 @@ export default function ProfileReveal({ profile }) {
   const [showDomain, setShowDomain] = useState(false)
 
   const description = PROFILE_DESCRIPTIONS[profile] || ''
-  const emoji = PROFILE_EMOJIS[profile] || '✨'
+  const iconName = PROFILE_ICONS[profile] || 'Sparkles'
+  const ProfileIcon = Icons[iconName] || Icons.Sparkles
   const name = PROFILE_NAMES[profile] || profile?.toUpperCase()
 
   useEffect(() => {
@@ -37,7 +39,9 @@ export default function ProfileReveal({ profile }) {
 
   return (
     <div className="fade-in text-center">
-      <div className="text-5xl mb-4">{emoji}</div>
+      <div className="flex justify-center mb-4">
+        <ProfileIcon size={48} strokeWidth={1.5} style={{ color: 'var(--text)' }} />
+      </div>
       <h2 className="text-sm font-semibold tracking-wide mb-6" style={{ color: 'var(--muted2)' }}>
         {name}
       </h2>

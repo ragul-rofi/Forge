@@ -1,3 +1,5 @@
+import { ArrowRight } from 'lucide-react'
+
 export default function NextStepCTA({ nextStep, domainColor }) {
   return (
     <div
@@ -12,9 +14,9 @@ export default function NextStepCTA({ nextStep, domainColor }) {
         href={nextStep.link}
         target="_blank"
         rel="noopener noreferrer"
-        className="btn-primary inline-block no-underline text-base px-8 py-3"
+        className="btn-primary inline-flex items-center gap-1 no-underline text-base px-8 py-3"
       >
-        Start This Now →
+        Start This Now <ArrowRight size={18} />
       </a>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
+import { ArrowRight } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -71,7 +72,7 @@ export default function Login() {
             disabled={loading}
             className="btn-primary w-full"
           >
-            {loading ? 'Entering...' : 'Enter →'}
+            {loading ? 'Entering...' : <span className="inline-flex items-center gap-1">Enter <ArrowRight size={16} /></span>}
           </button>
         </form>
       </div>

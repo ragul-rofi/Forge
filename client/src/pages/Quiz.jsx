@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuiz } from '../hooks/useQuiz'
+import { ArrowRight } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import PathSelector from '../components/quiz/PathSelector'
 import GatewayQuestion from '../components/quiz/GatewayQuestion'
@@ -146,7 +147,7 @@ export default function Quiz() {
               <p className="text-sm text-red-400">{emailGateError}</p>
             )}
             <button type="submit" className="btn-primary mt-2">
-              Show My Results →
+              Show My Results <ArrowRight size={16} className="inline ml-1" />
             </button>
             <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
               Your email is used only to send your results. No spam. Ever.
@@ -227,7 +228,7 @@ export default function Quiz() {
               )}
 
               <button type="submit" className="btn-primary mt-2">
-                Continue →
+                Continue <ArrowRight size={16} className="inline ml-1" />
               </button>
             </form>
           </div>
@@ -279,7 +280,7 @@ export default function Quiz() {
               )}
 
               <button type="submit" className="btn-primary mt-2">
-                Start Quiz →
+                Start Quiz <ArrowRight size={16} className="inline ml-1" />
               </button>
 
               <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
