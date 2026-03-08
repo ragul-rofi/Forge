@@ -9,7 +9,6 @@ import DomainCard from '../components/result/DomainCard'
 import SalaryCard from '../components/result/SalaryCard'
 import RoadmapPhase from '../components/result/RoadmapPhase'
 import CertificationRow from '../components/result/CertificationRow'
-import NextStepCTA from '../components/result/NextStepCTA'
 import LoadingDots from '../components/ui/LoadingDots'
 
 export default function Result() {
@@ -239,13 +238,6 @@ export default function Result() {
         {roadmap && (
           <section className="mb-8">
             <CertificationRow certifications={roadmap.certifications} domainColor={domainColor} />
-          </section>
-        )}
-
-        {/* Section 5: Next Step CTA */}
-        {roadmap && (
-          <section className="mb-12">
-            <NextStepCTA nextStep={roadmap.nextStep} domainColor={domainColor} />
           </section>
         )}
 
