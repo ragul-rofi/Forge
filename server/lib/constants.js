@@ -8,6 +8,11 @@ export const DOMAIN_NAMES = {
   design: 'UI/UX Design',
   networking: 'Networking & Infrastructure',
   business: 'Business & IT Management',
+  devops: 'DevOps & Site Reliability Engineering',
+  blockchain: 'Blockchain & Web3 Development',
+  iot: 'IoT & Embedded Systems',
+  genai: 'GenAI & AI Engineering',
+  devrel: 'DevRel & Technical Content Creation',
 }
 
 export const DOMAIN_COLORS = {
@@ -19,4 +24,9 @@ export const DOMAIN_COLORS = {
   design: '#38bdf8',
   networking: '#a3e635',
   business: '#fbbf24',
+  devops: '#e879f9',
+  blockchain: '#f59e0b',
+  iot: '#22d3ee',
+  genai: '#818cf8',
+  devrel: '#4ade80',
 }

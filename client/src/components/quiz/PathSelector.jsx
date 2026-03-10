@@ -33,6 +33,11 @@ const DOMAIN_OPTIONS = [
   { value: 'design', label: 'UI/UX Design' },
   { value: 'networking', label: 'Networking' },
   { value: 'business', label: 'Business & PM' },
+  { value: 'devops', label: 'DevOps & SRE' },
+  { value: 'blockchain', label: 'Blockchain & Web3' },
+  { value: 'iot', label: 'IoT & Embedded' },
+  { value: 'genai', label: 'GenAI & AI Engineering' },
+  { value: 'devrel', label: 'DevRel & Content' },
 ]
 
 export default function PathSelector({ onSelect, selectedDomain, onDomainChange }) {

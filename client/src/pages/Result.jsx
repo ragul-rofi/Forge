@@ -222,6 +222,37 @@ export default function Result() {
           </section>
         )}
 
+        {/* Fresher Reality Check */}
+        {roadmap?.fresherReality && (
+          <section className="mb-8">
+            <div className="card p-5" style={{ borderLeft: `4px solid ${domainColor}` }}>
+              <h4 className="text-xs font-semibold tracking-wide mb-3" style={{ color: domainColor }}>
+                FRESHER REALITY CHECK
+              </h4>
+              <div className="space-y-2 text-sm" style={{ color: 'var(--muted2)' }}>
+                <p><span style={{ color: 'var(--muted)' }}>Entry salary:</span> {roadmap.fresherReality.entrySalary}</p>
+                <p><span style={{ color: 'var(--muted)' }}>When you start earning:</span> {roadmap.fresherReality.earningStart}</p>
+                <p><span style={{ color: 'var(--muted)' }}>First job title:</span> {roadmap.fresherReality.firstJobTitle}</p>
+                <p className="pt-1 italic text-xs" style={{ color: 'var(--muted)' }}>{roadmap.fresherReality.tip}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Prerequisite / Important Note */}
+        {(roadmap?.prerequisiteNote || roadmap?.importantNote) && (
+          <section className="mb-8">
+            <div className="card p-5" style={{ borderLeft: '4px solid #fbbf24' }}>
+              <h4 className="text-xs font-semibold tracking-wide mb-2" style={{ color: '#fbbf24' }}>
+                IMPORTANT NOTE
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--muted2)' }}>
+                {roadmap.prerequisiteNote || roadmap.importantNote}
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* Section 4: Roadmap */}
         {roadmap && (
           <section className="mb-8">

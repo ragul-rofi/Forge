@@ -200,6 +200,48 @@ export const GENERAL_QUESTIONS = [
       { id: 'd', text: 'Urgency — I\'ve been putting this off and I need to just commit to something today', scores: {}, tag: 'COMMIT' },
     ],
   },
+  {
+    id: 'g13',
+    question_number: 13,
+    mode: 'general',
+    signal_type: 'natural',
+    question_type: 'scenario',
+    question_text: 'When you learn something new, what do you actually do with it first?',
+    options: [
+      { id: 'a', text: 'Build something with it immediately — anything to see it in action', scores: { maker: 2, devops_signal: 1 } },
+      { id: 'b', text: 'Explain it to someone — teaching it makes it stick', scores: { creator: 2, devrel_signal: 1 } },
+      { id: 'c', text: 'Find the edge cases — what could break this, what\'s the limit', scores: { thinker: 2, protector: 2, blockchain_signal: 1 } },
+      { id: 'd', text: 'Look for the next related thing to learn immediately', scores: { explorer: 2 } },
+    ],
+  },
+  {
+    id: 'g14',
+    question_number: 14,
+    mode: 'general',
+    signal_type: 'think',
+    question_type: 'scenario',
+    question_text: 'You find out two systems need to talk to each other — they\'re built differently and neither team wants to change their code. You:',
+    options: [
+      { id: 'a', text: 'Find or build a connector that sits between them', scores: { maker: 2, devops_signal: 1, iot_signal: 1 } },
+      { id: 'b', text: 'Document exactly what each system does and find the overlap', scores: { thinker: 2 } },
+      { id: 'c', text: 'Set up a meeting between both teams and facilitate an agreement', scores: { leader: 2, helper: 1 } },
+      { id: 'd', text: 'Suggest replacing both systems with one that works better', scores: { creator: 1, thinker: 1 } },
+    ],
+  },
+  {
+    id: 'g15',
+    question_number: 15,
+    mode: 'general',
+    signal_type: 'enjoy',
+    question_type: 'scenario',
+    question_text: 'You\'re starting a new side project. Which beginning excites you most?',
+    options: [
+      { id: 'a', text: 'Opening a code editor and setting up the backend first', scores: { maker: 2, devops_signal: 1 } },
+      { id: 'b', text: 'Writing down the idea and mapping out how users will experience it', scores: { creator: 2, leader: 1 } },
+      { id: 'c', text: 'Researching what\'s been done before and finding the gap', scores: { thinker: 2, explorer: 1 } },
+      { id: 'd', text: 'Telling someone about the idea and getting their reaction', scores: { creator: 1, devrel_signal: 2 } },
+    ],
+  },
 ];
 
 export const ADVANCED_QUESTIONS = [
@@ -456,7 +498,76 @@ export const VALIDATE_DOMAIN_QUESTIONS = {
   ai: ['g7', 'g3', 'g9', 'g5'],
   networking: ['g4', 'g10', 'g3', 'g6'],
   business: ['g6', 'g8', 'g7', 'g2'],
+  devops: ['g4', 'g3', 'g9', 'g1'],
+  blockchain: ['g7', 'g4', 'g10', 'g3'],
+  iot: ['g4', 'g3', 'g1', 'g13'],
+  genai: ['g7', 'g9', 'g3', 'g5'],
+  devrel: ['g11', 'g5', 'g3', 'g15'],
 };
+
+// Domain-specific quiz questions for new domains
+export const DOMAIN_SPECIFIC_QUESTIONS = [
+  {
+    id: 'qd1',
+    domain: 'devops',
+    signal_type: 'natural',
+    question_text: 'Your code is working perfectly. Your teammate\'s deployment pipeline breaks and holds up the entire team. You:',
+    options: [
+      { id: 'a', text: 'Jump in and help debug immediately — blocking the team bothers you', scores: { maker: 2, protector: 1 } },
+      { id: 'b', text: 'Investigate root cause before touching anything — need to know why', scores: { thinker: 2, protector: 1 } },
+      { id: 'c', text: 'Suggest using a backup pipeline while they fix the main one', scores: { leader: 2 } },
+      { id: 'd', text: 'Document what happened so the team doesn\'t hit this again later', scores: { thinker: 1, protector: 1 } },
+    ],
+  },
+  {
+    id: 'qd2',
+    domain: 'blockchain',
+    signal_type: 'think',
+    question_text: 'You hear that a major company\'s database was hacked and millions of records were exposed. Your first thought is:',
+    options: [
+      { id: 'a', text: 'There should have been a system where nobody could access data without leaving a permanent trace', scores: { protector: 2, maker: 1, explorer: 1 } },
+      { id: 'b', text: 'Who built the security and why did they miss this', scores: { thinker: 2 } },
+      { id: 'c', text: 'What data was taken and who will be affected most', scores: { helper: 2 } },
+      { id: 'd', text: 'This is going to cost them — I wonder about the business impact', scores: { leader: 2 } },
+    ],
+  },
+  {
+    id: 'qd3',
+    domain: 'iot',
+    signal_type: 'natural',
+    question_text: 'You\'re given a box of random electronic components — wires, sensors, a small microcontroller, a battery. No instructions. What happens next?',
+    options: [
+      { id: 'a', text: 'I start connecting things and see what happens', scores: { maker: 2, explorer: 1 } },
+      { id: 'b', text: 'I look up the datasheet for each component before touching anything', scores: { thinker: 2, protector: 1 } },
+      { id: 'c', text: 'I think about what I\'d want this to do and work backwards from that', scores: { creator: 2, maker: 1 } },
+      { id: 'd', text: 'I ask someone who knows this stuff to walk me through it', scores: { helper: 1 } },
+    ],
+  },
+  {
+    id: 'qd4',
+    domain: 'genai',
+    signal_type: 'natural',
+    question_text: 'You use an AI chatbot and it gives a completely wrong answer confidently. Your reaction is:',
+    options: [
+      { id: 'a', text: 'I want to know exactly why it failed — what went wrong in the reasoning', scores: { thinker: 2, protector: 1 } },
+      { id: 'b', text: 'I want to fix it — make it better, give it the right context', scores: { maker: 2 } },
+      { id: 'c', text: 'I want to build a version that doesn\'t make this mistake', scores: { maker: 2, creator: 1 } },
+      { id: 'd', text: 'I share it — it\'s either useful or funny, both worth sharing', scores: { creator: 1, helper: 1 } },
+    ],
+  },
+  {
+    id: 'qd5',
+    domain: 'devrel',
+    signal_type: 'enjoy',
+    question_text: 'You just spent 3 hours learning something new and complex. Immediately after, you feel the urge to:',
+    options: [
+      { id: 'a', text: 'Build something with it to test if I actually understood it', scores: { maker: 2 } },
+      { id: 'b', text: 'Explain it to someone else — teaching it confirms I got it', scores: { creator: 2, helper: 1 } },
+      { id: 'c', text: 'Write it down clearly before I forget the thinking process', scores: { creator: 2, thinker: 1 } },
+      { id: 'd', text: 'Find the next harder thing and go deeper', scores: { explorer: 2, thinker: 1 } },
+    ],
+  },
+];
 
 export function getQuestionsForMode(mode, validateTarget) {
   if (mode === 'general') return GENERAL_QUESTIONS;

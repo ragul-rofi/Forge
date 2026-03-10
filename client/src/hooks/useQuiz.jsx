@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { GATEWAY_QUESTIONS, getQuestionsForMode } from '../data/questions'
-import { calculateProfile, profileToDomain, applyGatewayOverride, calculateValidateVerdict } from '../lib/scoring'
+import { calculateProfile, resolveDomain, applyGatewayOverride, calculateValidateVerdict } from '../lib/scoring'
 
 const STORAGE_KEY = 'forge-quiz-state'
 
@@ -120,12 +120,12 @@ export function useQuiz() {
       if (nextIndex >= modeQuestions.length && newAnswers.length >= modeQuestions.length) {
         // Quiz complete — calculate results
         const profileResult = calculateProfile(newAnswers)
-        const domainMapping = profileToDomain[profileResult.primary]
+        const domainResult = resolveDomain(profileResult.primary, profileResult.auxiliaryScores)
         const timeAvailable = prev.gatewayAnswers[0]?.tag || ''
         const priority = prev.gatewayAnswers[1]?.tag || ''
 
-        let recommendedDomain = domainMapping.primary
-        let secondDomain = domainMapping.secondary
+        let recommendedDomain = domainResult.primary
+        let secondDomain = domainResult.secondary
         let overrideReason = null
 
         if (prev.mode === 'validate') {
@@ -145,7 +145,7 @@ export function useQuiz() {
             result: {
               ...profileResult,
               recommendedDomain: prev.validateTarget,
-              secondDomain: domainMapping.primary,
+              secondDomain: domainResult.primary,
               overrideReason: null,
               validateVerdict: verdict,
               timeAvailable,

@@ -118,7 +118,7 @@ export default function Landing() {
       <section className="max-w-5xl mx-auto px-6 py-24 md:py-32">
         <RevealOnScroll>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
-            8 domains you could land in
+            13 domains you could land in
           </h2>
           <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
             Each one comes with real salary data, difficulty ratings, and a phase-by-phase roadmap.
