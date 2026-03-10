@@ -4,6 +4,7 @@ import { GATEWAY_QUESTIONS, getQuestionsForMode } from '../data/questions'
 import { calculateProfile, resolveDomain, applyGatewayOverride, calculateValidateVerdict } from '../lib/scoring'
 
 const STORAGE_KEY = 'forge-quiz-state'
+const STORAGE_EXPIRY_DAYS = 7
 
 const initialState = {
   phase: 'collect_info',
@@ -15,6 +16,7 @@ const initialState = {
   answers: [],
   sessionId: null,
   result: null,
+  savedAt: null,
 }
 
 function loadState() {
@@ -23,6 +25,16 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved)
       if (parsed.phase === 'done') return initialState
+
+      // Check 7-day expiry
+      if (parsed.savedAt) {
+        const elapsed = Date.now() - parsed.savedAt
+        if (elapsed > STORAGE_EXPIRY_DAYS * 24 * 60 * 60 * 1000) {
+          localStorage.removeItem(STORAGE_KEY)
+          return initialState
+        }
+      }
+
       return parsed
     }
   } catch (e) {
@@ -35,7 +47,7 @@ export function useQuiz() {
   const [state, setState] = useState(loadState)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, savedAt: Date.now() }))
   }, [state])
 
   const questions = state.mode ? getQuestionsForMode(state.mode, state.validateTarget) : []
@@ -58,7 +70,30 @@ export function useQuiz() {
       ...prev,
       studentInfo: { ...prev.studentInfo, email },
     }))
-  }, [])
+
+    // Create a partial session so we can track abandonment
+    try {
+      const { data } = await supabase
+        .from('quiz_sessions')
+        .insert({
+          student_email: email,
+          student_name: state.studentInfo.name,
+          year_of_study: state.studentInfo.year,
+          department: state.studentInfo.department || null,
+          quiz_mode: state.mode,
+          completion_rate: 0,
+          abandoned_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (data?.id) {
+        setState(prev => ({ ...prev, sessionId: data.id }))
+      }
+    } catch {
+      // Non-critical — abandonment tracking is best-effort
+    }
+  }, [state.studentInfo, state.mode])
 
   const proceedToGateway = useCallback(() => {
     setState(prev => ({
@@ -226,6 +261,7 @@ export function useQuiz() {
       validate_verdict: state.result.validateVerdict,
       score_breakdown: state.result.scores,
       completion_rate: 100,
+      abandoned_at: null,
     }
 
     try {

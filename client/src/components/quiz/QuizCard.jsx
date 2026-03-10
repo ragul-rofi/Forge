@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import OptionButton from './OptionButton'
 import ProgressBar from './ProgressBar'
 import SignalBadge from '../ui/SignalBadge'
@@ -6,6 +6,7 @@ import SignalBadge from '../ui/SignalBadge'
 export default function QuizCard({ question, current, total, onAnswer, domainColor, canGoBack, canGoForward, onGoBack, onGoForward, isReAnswering, previousAnswer }) {
   const [selectedOption, setSelectedOption] = useState(null)
   const [transitioning, setTransitioning] = useState(false)
+  const touchStartRef = useRef(null)
 
   const handleSelect = useCallback((option) => {
     if (selectedOption || transitioning) return
@@ -19,10 +20,32 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
     }, 300)
   }, [selectedOption, transitioning, onAnswer, question.id])
 
+  const handleTouchStart = useCallback((e) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }, [])
+
+  const handleTouchEnd = useCallback((e) => {
+    if (!touchStartRef.current) return
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y
+    touchStartRef.current = null
+
+    // Only trigger on horizontal swipes (dx > dy) with enough distance
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return
+
+    if (dx < 0 && canGoForward) {
+      // Swipe left → next question (only if already answered)
+      onGoForward()
+    } else if (dx > 0 && canGoBack) {
+      // Swipe right → previous question
+      onGoBack()
+    }
+  }, [canGoForward, canGoBack, onGoForward, onGoBack])
+
   const letters = ['A', 'B', 'C', 'D']
 
   return (
-    <div className="slide-up w-full max-w-2xl mx-auto">
+    <div className="slide-up w-full max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Progress */}
       <ProgressBar current={current} total={total} color={domainColor || 'var(--text)'} />
 
@@ -77,27 +100,27 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
 
           {isReAnswering && (
             <span className="text-xs" style={{ color: 'var(--muted)' }}>
-              Tap to change your answer
+              Select an option to change your answer
             </span>
           )}
 
-          <button
-            onClick={onGoForward}
-            disabled={!canGoForward}
-            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 transition-all duration-150 cursor-pointer"
-            style={{
-              color: canGoForward ? 'var(--text)' : 'var(--muted)',
-              opacity: canGoForward ? 1 : 0.4,
-              backgroundColor: canGoForward ? 'var(--surface2)' : 'transparent',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-            }}
-          >
-            Skip
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
+          {canGoForward && (
+            <button
+              onClick={onGoForward}
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 transition-all duration-150 cursor-pointer"
+              style={{
+                color: 'var(--text)',
+                backgroundColor: 'var(--surface2)',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+              }}
+            >
+              Next
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>

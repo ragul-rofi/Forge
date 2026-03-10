@@ -4,6 +4,7 @@ import {
   ArrowRight, Target, BarChart3, Map, Zap,
   Cloud, Code2, BrainCircuit, ShieldCheck,
   Palette, Network, Briefcase, DatabaseZap,
+  Container, Link2, Cpu, Sparkles, Megaphone,
 } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
@@ -16,14 +17,19 @@ const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
 }))
 
 const DOMAIN_META = {
-  cloud:      { icon: Cloud,       tagline: 'Build what runs the internet' },
-  fullstack:  { icon: Code2,       tagline: 'Frontend to backend, end to end' },
-  data:       { icon: DatabaseZap, tagline: 'Turn numbers into decisions' },
-  ai:         { icon: BrainCircuit,tagline: 'Teach machines to think' },
-  cyber:      { icon: ShieldCheck, tagline: 'Defend what others build' },
-  design:     { icon: Palette,     tagline: 'Shape how people experience tech' },
-  networking: { icon: Network,     tagline: 'Connect everything, everywhere' },
-  business:   { icon: Briefcase,   tagline: 'Lead products and teams' },
+  cloud:      { icon: Cloud,        tagline: 'Build what runs the internet' },
+  fullstack:  { icon: Code2,        tagline: 'Frontend to backend, end to end' },
+  data:       { icon: DatabaseZap,  tagline: 'Turn numbers into decisions' },
+  ai:         { icon: BrainCircuit, tagline: 'Teach machines to think' },
+  cyber:      { icon: ShieldCheck,  tagline: 'Defend what others build' },
+  design:     { icon: Palette,      tagline: 'Shape how people experience tech' },
+  networking: { icon: Network,      tagline: 'Connect everything, everywhere' },
+  business:   { icon: Briefcase,    tagline: 'Lead products and teams' },
+  devops:     { icon: Container,    tagline: 'The glue between code and the real world' },
+  blockchain: { icon: Link2,        tagline: 'Build systems that nobody can tamper with' },
+  iot:        { icon: Cpu,          tagline: 'Make the physical world talk to the digital one' },
+  genai:      { icon: Sparkles,     tagline: 'Build products powered by intelligence' },
+  devrel:     { icon: Megaphone,    tagline: 'Explain hard things. Build audiences. Get paid for both.' },
 }
 
 const STEPS = [

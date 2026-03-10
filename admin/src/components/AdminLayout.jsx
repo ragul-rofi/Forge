@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
-import { LayoutDashboard, Users, FileQuestion, BarChart3, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, FileQuestion, Map, BarChart3, LogOut, Menu, X } from 'lucide-react'
 import ThemeToggle from './ui/ThemeToggle'
 import Badge from './ui/Badge'
 import Logo from './ui/Logo'
@@ -10,6 +10,7 @@ const navLinks = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/students', label: 'Students', icon: Users },
   { to: '/questions', label: 'Questions', icon: FileQuestion },
+  { to: '/roadmaps', label: 'Roadmaps', icon: Map },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 

@@ -150,6 +150,72 @@ export default function Analytics() {
       .map(([name, value]) => ({ name, value }))
   }, [filtered])
 
+  // Chart 7: "Not My Vibe" rejection rate by domain
+  const rejectionData = useMemo(() => {
+    const rejections = {}
+    const totals = {}
+    filtered.forEach((s) => {
+      if (s.recommended_domain) {
+        totals[s.recommended_domain] = (totals[s.recommended_domain] || 0) + 1
+        if (s.result_rejected) {
+          rejections[s.recommended_domain] = (rejections[s.recommended_domain] || 0) + 1
+        }
+      }
+    })
+    return Object.keys(totals)
+      .filter((d) => rejections[d])
+      .map((d) => ({
+        name: DOMAIN_NAMES[d] || d,
+        rejections: rejections[d] || 0,
+        rate: Math.round(((rejections[d] || 0) / totals[d]) * 100),
+      }))
+      .sort((a, b) => b.rate - a.rate)
+  }, [filtered])
+
+  // Chart 8: AI Personalizer Usage (daily messages)
+  const [aiUsageData, setAiUsageData] = useState([])
+  useEffect(() => {
+    async function fetchAIUsage() {
+      try {
+        const { data } = await supabase
+          .from('students')
+          .select('ai_messages_today, last_active_date')
+        if (!data) return
+        const byDate = {}
+        data.forEach((s) => {
+          if (s.last_active_date && s.ai_messages_today > 0) {
+            const d = s.last_active_date
+            byDate[d] = (byDate[d] || 0) + s.ai_messages_today
+          }
+        })
+        setAiUsageData(
+          Object.entries(byDate)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .slice(-30)
+            .map(([date, messages]) => ({ name: date.slice(5), messages }))
+        )
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchAIUsage()
+  }, [])
+
+  // Chart 9: Domain Switch Rate (from → to via "Not My Vibe")
+  const domainSwitchData = useMemo(() => {
+    const switches = {}
+    filtered.forEach((s) => {
+      if (s.result_rejected && s.recommended_domain && s.alternate_domain_shown) {
+        const key = `${DOMAIN_NAMES[s.recommended_domain] || s.recommended_domain} → ${DOMAIN_NAMES[s.alternate_domain_shown] || s.alternate_domain_shown}`
+        switches[key] = (switches[key] || 0) + 1
+      }
+    })
+    return Object.entries(switches)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+  }, [filtered])
+
   // Trend observation
   const trendText = useMemo(() => {
     if (filtered.length < 5) return null
@@ -321,6 +387,46 @@ export default function Analytics() {
           />
         </div>
       )}
+
+      {/* Chart 7: Rejection Rate by Domain */}
+      {rejectionData.length > 0 && (
+        <div className="mt-4">
+          <AnalyticsChart
+            type="bar"
+            title='"NOT MY VIBE" REJECTION RATE BY DOMAIN'
+            data={rejectionData}
+            dataKeys={['rate']}
+            colors={['#f43f5e']}
+            height={280}
+          />
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-4 mt-4">
+        {/* Chart 8: AI Personalizer Usage */}
+        {aiUsageData.length > 0 && (
+          <AnalyticsChart
+            type="line"
+            title="AI PERSONALIZER USAGE (DAILY MESSAGES)"
+            data={aiUsageData}
+            dataKeys={['messages']}
+            colors={['#818cf8']}
+            height={250}
+          />
+        )}
+
+        {/* Chart 9: Domain Switch Rate */}
+        {domainSwitchData.length > 0 && (
+          <AnalyticsChart
+            type="bar"
+            title="DOMAIN SWITCH RATE (FROM → TO)"
+            data={domainSwitchData}
+            dataKeys={['count']}
+            colors={['#fbbf24']}
+            height={250}
+          />
+        )}
+      </div>
     </div>
   )
 }
