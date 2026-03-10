@@ -60,6 +60,22 @@ export default function Students() {
     URL.revokeObjectURL(url)
   }
 
+  const handleDelete = async (ids) => {
+    if (!ids || ids.length === 0) return
+    try {
+      const { error } = await supabase
+        .from('quiz_sessions')
+        .delete()
+        .in('id', ids)
+
+      if (error) throw error
+      setSessions((prev) => prev.filter((s) => !ids.includes(s.id)))
+    } catch (err) {
+      console.error('Delete sessions error:', err)
+      alert('Failed to delete session(s).')
+    }
+  }
+
   if (loading) {
     return <p style={{ color: 'var(--muted)' }}>Loading students...</p>
   }
@@ -67,7 +83,7 @@ export default function Students() {
   return (
     <div>
       <h2 className="text-2xl font-[700] mb-6" style={{ color: 'var(--text)' }}>Students</h2>
-      <StudentTable sessions={sessions} onExport={handleExport} />
+      <StudentTable sessions={sessions} onExport={handleExport} onDelete={handleDelete} />
     </div>
   )
 }

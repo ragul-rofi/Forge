@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { PROFILE_NAMES } from '../lib/profiles'
-import { ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react'
 import Badge from './ui/Badge'
 import DomainDot from './ui/DomainDot'
 
-const PAGE_SIZE = 25
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
-export default function StudentTable({ sessions = [], onExport }) {
+export default function StudentTable({ sessions = [], onExport, onDelete }) {
   const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState(25)
   const [sort, setSort] = useState({ key: 'created_at', dir: 'desc' })
   const [selected, setSelected] = useState(new Set())
   const [detailSession, setDetailSession] = useState(null)
@@ -20,8 +21,24 @@ export default function StudentTable({ sessions = [], onExport }) {
   const [profileFilter, setProfileFilter] = useState('')
   const [yearFilter, setYearFilter] = useState('')
 
+  // Deduplicate by email — keep latest session per student
+  const [dedup, setDedup] = useState(false)
+
   const filtered = useMemo(() => {
     let data = [...sessions]
+
+    // Deduplicate by email if enabled
+    if (dedup) {
+      const seen = new Map()
+      data.forEach((r) => {
+        const key = r.student_email || r.id
+        const existing = seen.get(key)
+        if (!existing || new Date(r.created_at) > new Date(existing.created_at)) {
+          seen.set(key, r)
+        }
+      })
+      data = Array.from(seen.values())
+    }
     if (search) {
       const s = search.toLowerCase()
       data = data.filter(
@@ -50,10 +67,10 @@ export default function StudentTable({ sessions = [], onExport }) {
       return sort.dir === 'desc' ? -cmp : cmp
     })
     return data
-  }, [sessions, search, domainFilter, modeFilter, profileFilter, yearFilter, sort])
+  }, [sessions, search, domainFilter, modeFilter, profileFilter, yearFilter, sort, dedup])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const pageData = filtered.slice(page * pageSize, (page + 1) * pageSize)
 
   const toggleSort = (key) => {
     setSort((s) => ({
@@ -101,14 +118,14 @@ export default function StudentTable({ sessions = [], onExport }) {
 
   return (
     <div>
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
+      {/* Filters — single horizontal row */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         <input
           type="text"
           placeholder="Search name or email..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="input text-sm w-64"
+          className="input text-sm w-56"
         />
 
         <select
@@ -143,30 +160,40 @@ export default function StudentTable({ sessions = [], onExport }) {
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
+
+        {/* Domain filter chips inline */}
+        <div className="flex flex-wrap items-center gap-1">
+          {Object.entries(DOMAIN_NAMES).map(([key, name]) => (
+            <button
+              key={key}
+              onClick={() => { toggleDomain(key); setPage(0) }}
+              className={`tag text-[11px] cursor-pointer transition-all px-2 py-0.5 ${domainFilter.includes(key) ? 'ring-2' : 'opacity-50'}`}
+              style={{
+                borderColor: DOMAIN_COLORS[key],
+                color: domainFilter.includes(key) ? DOMAIN_COLORS[key] : 'var(--muted)',
+                ringColor: DOMAIN_COLORS[key],
+              }}
+              title={name}
+            >
+              <DomainDot domain={key} />
+              {name.split(' ')[0]}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1 border-l pl-2 ml-auto" style={{ borderColor: 'var(--border)' }}>
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: 'var(--muted)' }}>
+            <input
+              type="checkbox"
+              checked={dedup}
+              onChange={(e) => { setDedup(e.target.checked); setPage(0) }}
+            />
+            Deduplicate
+          </label>
+        </div>
       </div>
 
-      {/* Domain chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {Object.entries(DOMAIN_NAMES).map(([key, name]) => (
-          <button
-            key={key}
-            onClick={() => { toggleDomain(key); setPage(0) }}
-            className={`tag text-xs cursor-pointer transition-all ${
-              domainFilter.includes(key) ? 'ring-2' : 'opacity-60'
-            }`}
-            style={{
-              borderColor: DOMAIN_COLORS[key],
-              color: domainFilter.includes(key) ? DOMAIN_COLORS[key] : 'var(--muted)',
-              ringColor: DOMAIN_COLORS[key],
-            }}
-          >
-            <DomainDot domain={key} />
-            {name}
-          </button>
-        ))}
-      </div>
-
-      {/* Export buttons */}
+      {/* Export & Delete buttons */}
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={() => onExport?.(filtered)}
@@ -175,12 +202,26 @@ export default function StudentTable({ sessions = [], onExport }) {
           Export CSV ({filtered.length})
         </button>
         {selected.size > 0 && (
-          <button
-            onClick={() => onExport?.(filtered.filter((r) => selected.has(r.id)))}
-            className="btn-secondary text-sm"
-          >
-            Export Selected ({selected.size})
-          </button>
+          <>
+            <button
+              onClick={() => onExport?.(filtered.filter((r) => selected.has(r.id)))}
+              className="btn-secondary text-sm"
+            >
+              Export Selected ({selected.size})
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Delete ${selected.size} selected session(s)? This cannot be undone.`)) {
+                  onDelete?.(Array.from(selected))
+                  setSelected(new Set())
+                }
+              }}
+              className="btn-secondary text-sm inline-flex items-center gap-1"
+              style={{ color: '#f43f5e', borderColor: '#f43f5e40' }}
+            >
+              <Trash2 size={13} /> Delete Selected ({selected.size})
+            </button>
+          </>
         )}
       </div>
 
@@ -207,6 +248,8 @@ export default function StudentTable({ sessions = [], onExport }) {
                   <SortIcon col={col.key} />
                 </th>
               ))}
+              <th className="p-2 text-right font-mono text-xs tracking-wider whitespace-nowrap" style={{ color: 'var(--muted)' }}>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -241,11 +284,25 @@ export default function StudentTable({ sessions = [], onExport }) {
                 <td className="p-2 whitespace-nowrap">
                   {row.created_at ? new Date(row.created_at).toLocaleDateString() : '—'}
                 </td>
+                <td className="p-2" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this session?')) {
+                        onDelete?.([row.id])
+                      }
+                    }}
+                    className="p-1 rounded hover:bg-white/10 transition-colors"
+                    style={{ color: '#f43f5e' }}
+                    title="Delete session"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </td>
               </tr>
             ))}
             {pageData.length === 0 && (
               <tr>
-                <td colSpan={columns.length + 1} className="p-8 text-center" style={{ color: 'var(--muted)' }}>
+                <td colSpan={columns.length + 2} className="p-8 text-center" style={{ color: 'var(--muted)' }}>
                   No sessions found
                 </td>
               </tr>
@@ -256,9 +313,20 @@ export default function StudentTable({ sessions = [], onExport }) {
 
       {/* Pagination */}
       <div className="flex items-center justify-between mt-4">
-        <span className="text-xs" style={{ color: 'var(--muted)' }}>
-          {filtered.length} total · Page {page + 1} of {totalPages}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>
+            {filtered.length} total · Page {page + 1} of {totalPages}
+          </span>
+          <select
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0) }}
+            className="input text-xs py-1"
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>{n} per page</option>
+            ))}
+          </select>
+        </div>
         <div className="flex gap-2">
           <button
             disabled={page === 0}

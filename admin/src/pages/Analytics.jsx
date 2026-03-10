@@ -374,9 +374,9 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Chart 6: Validate Verdicts */}
-      {verdicts.length > 0 && (
-        <div className="max-w-md">
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        {/* Chart 6: Validate Verdicts */}
+        {verdicts.length > 0 && (
           <AnalyticsChart
             type="pie"
             title="VALIDATE MODE VERDICTS"
@@ -385,12 +385,10 @@ export default function Analytics() {
             colors={['#10b981', '#fbbf24', '#f43f5e']}
             height={280}
           />
-        </div>
-      )}
+        )}
 
-      {/* Chart 7: Rejection Rate by Domain */}
-      {rejectionData.length > 0 && (
-        <div className="mt-4">
+        {/* Chart 7: Rejection Rate by Domain */}
+        {rejectionData.length > 0 && (
           <AnalyticsChart
             type="bar"
             title='"NOT MY VIBE" REJECTION RATE BY DOMAIN'
@@ -399,10 +397,10 @@ export default function Analytics() {
             colors={['#f43f5e']}
             height={280}
           />
-        </div>
-      )}
+        )}
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mt-4">
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
         {/* Chart 8: AI Personalizer Usage */}
         {aiUsageData.length > 0 && (
           <AnalyticsChart

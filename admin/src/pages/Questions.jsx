@@ -37,6 +37,7 @@ export default function Questions() {
   const [expandedRows, setExpandedRows] = useState(new Set())
   const [sortKey, setSortKey] = useState('display_order')
   const [sortDir, setSortDir] = useState('asc')
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -190,7 +191,6 @@ export default function Questions() {
 
   // --- Delete Question ---
   const deleteQuestion = async (id) => {
-    if (!confirm('Delete this question and all its options? This cannot be undone.')) return
     try {
       await supabase.from('question_options').delete().eq('question_id', id)
       await supabase.from('questions').delete().eq('id', id)
@@ -199,6 +199,7 @@ export default function Questions() {
         setSelectedId(null)
         setShowEditor(false)
       }
+      setDeleteTarget(null)
     } catch (err) {
       console.error('Delete error:', err)
       alert('Failed to delete question.')
@@ -701,7 +702,7 @@ export default function Questions() {
                   expanded={expandedRows.has(q.id)}
                   onToggle={() => toggleRow(q.id)}
                   onEdit={() => { setSelectedId(q.id); setShowEditor(true) }}
-                  onDelete={() => deleteQuestion(q.id)}
+                  onDelete={() => setDeleteTarget(q)}
                   onToggleActive={() => toggleActive(q)}
                   onDuplicate={() => duplicateQuestion(q)}
                 />
@@ -739,6 +740,47 @@ export default function Questions() {
           fileInputRef={fileInputRef}
           totalQuestions={questions.length}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setDeleteTarget(null)} />
+          <div className="relative w-full max-w-sm mx-4 card p-6" style={{ backgroundColor: 'var(--bg)' }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f43f5e15' }}>
+                <Trash2 size={18} style={{ color: '#f43f5e' }} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>Delete Question</h3>
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>This cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-sm mb-1" style={{ color: 'var(--muted2)' }}>
+              Are you sure you want to delete this question and all its options?
+            </p>
+            <div className="text-sm p-3 rounded-lg mt-3 mb-5" style={{ backgroundColor: 'var(--surface)', color: 'var(--text)' }}>
+              <span className="text-xs font-mono mr-2" style={{ color: 'var(--muted)' }}>#{deleteTarget.display_order}</span>
+              {deleteTarget.question_text?.slice(0, 100)}
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-1.5 rounded-lg text-sm cursor-pointer"
+                style={{ color: 'var(--muted)', background: 'none', border: '1px solid var(--border)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteQuestion(deleteTarget.id)}
+                className="px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer"
+                style={{ backgroundColor: '#f43f5e', color: '#fff', border: 'none' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

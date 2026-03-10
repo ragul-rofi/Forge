@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import DragTaskList from './DragTaskList'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
+
+const MIN_PHASES = 3
 
 export default function RoadmapEditor({ domain, template, domainColor, onChange }) {
   const [expandedPhase, setExpandedPhase] = useState(0)
@@ -16,6 +18,28 @@ export default function RoadmapEditor({ domain, template, domainColor, onChange 
       ...template,
       salary_data: { ...template.salary_data, [field]: value },
     })
+  }
+
+  const addPhase = () => {
+    const phases = [...(template.phases || [])]
+    const nextNum = phases.length + 1
+    phases.push({
+      number: nextNum,
+      title: `Phase ${nextNum}`,
+      duration: '3–4 weeks',
+      tasks: [''],
+      readyCheck: '',
+      quitWarning: '',
+    })
+    onChange({ ...template, phases })
+  }
+
+  const removePhase = (index) => {
+    if ((template.phases || []).length <= MIN_PHASES) return
+    const phases = template.phases.filter((_, i) => i !== index)
+      .map((p, i) => ({ ...p, number: i + 1 }))
+    onChange({ ...template, phases })
+    if (expandedPhase >= phases.length) setExpandedPhase(phases.length - 1)
   }
 
   const updatePhase = (index, field, value) => {
@@ -193,10 +217,36 @@ export default function RoadmapEditor({ domain, template, domainColor, onChange 
                   }}
                 />
               </div>
+
+              {/* Remove Phase button */}
+              {(template.phases || []).length > MIN_PHASES && (
+                <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <button
+                    onClick={() => removePhase(i)}
+                    className="text-xs inline-flex items-center gap-1 px-2.5 py-1 rounded-md cursor-pointer transition-colors hover:bg-white/5"
+                    style={{ color: '#f43f5e', background: 'none', border: 'none' }}
+                  >
+                    <Trash2 size={12} /> Remove Phase
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       ))}
+
+      {/* Add Phase button */}
+      <button
+        onClick={addPhase}
+        className="w-full py-3 rounded-lg text-sm font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 transition-colors hover:bg-white/5"
+        style={{
+          color: domainColor,
+          border: `1px dashed ${domainColor}50`,
+          background: 'none',
+        }}
+      >
+        <Plus size={15} /> Add Phase
+      </button>
 
       {/* Certifications Editor */}
       <div className="card p-5">

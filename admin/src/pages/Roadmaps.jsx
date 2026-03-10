@@ -4,6 +4,7 @@ import { useAdmin } from '../hooks/useAdmin'
 import RoadmapEditor from '../components/RoadmapEditor'
 import RoadmapVersionHistory from '../components/RoadmapVersionHistory'
 import { AlertTriangle, Check, Loader2 } from 'lucide-react'
+import { DOMAIN_ROADMAPS } from '../data/roadmapDefaults'
 
 const DOMAIN_COLORS = {
   cloud: '#38bdf8', fullstack: '#f97316', data: '#a78bfa', ai: '#f43f5e',
@@ -184,11 +185,11 @@ export default function Roadmaps() {
             <button
               key={d}
               onClick={() => { setSelectedDomain(d); setDirty(false) }}
-              className="w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-colors flex items-center gap-2"
+              className="w-full text-left px-3 py-2 rounded-lg text-sm cursor-pointer transition-all duration-150 flex items-center gap-2 hover:scale-[1.03] hover:shadow-sm"
               style={{
                 backgroundColor: selectedDomain === d ? 'var(--bg)' : 'transparent',
                 color: selectedDomain === d ? 'var(--text)' : 'var(--muted)',
-                border: 'none',
+                border: selectedDomain === d ? `1px solid ${DOMAIN_COLORS[d]}30` : '1px solid transparent',
               }}
             >
               <span
@@ -224,20 +225,42 @@ export default function Roadmaps() {
               </p>
               <button
                 onClick={() => {
+                  const defaults = DOMAIN_ROADMAPS[selectedDomain]
+                  const defaultPhases = defaults?.phases?.map((p, i) => ({
+                    number: p.number || i + 1,
+                    title: p.title || `Phase ${i + 1}`,
+                    duration: p.duration || '3–4 weeks',
+                    tasks: p.tasks || [''],
+                    readyCheck: '',
+                    quitWarning: '',
+                  })) || Array.from({ length: 5 }, (_, i) => ({
+                    number: i + 1,
+                    title: `Phase ${i + 1}`,
+                    duration: '3–4 weeks',
+                    tasks: [''],
+                    readyCheck: '',
+                    quitWarning: '',
+                  }))
+
+                  const defaultCerts = defaults?.certifications?.map(c => ({
+                    name: c.name || '',
+                    priority: c.priority || 1,
+                    link: c.link || '',
+                  })) || []
+
+                  const defaultSalary = defaults?.salary ? {
+                    entry: defaults.salary.entry || '',
+                    mid: defaults.salary.mid || '',
+                    timeToJobReady: defaults.salary.timeToJobReady || '',
+                  } : { entry: '', mid: '', timeToJobReady: '' }
+
                   setTemplates(prev => ({
                     ...prev,
                     [selectedDomain]: {
                       domain: selectedDomain,
-                      phases: Array.from({ length: 5 }, (_, i) => ({
-                        number: i + 1,
-                        title: `Phase ${i + 1}`,
-                        duration: '3–4 weeks',
-                        tasks: [''],
-                        readyCheck: '',
-                        quitWarning: '',
-                      })),
-                      certifications: [],
-                      salary_data: { entry: '', mid: '', timeToJobReady: '' },
+                      phases: defaultPhases,
+                      certifications: defaultCerts,
+                      salary_data: defaultSalary,
                       change_log: [],
                     },
                   }))
