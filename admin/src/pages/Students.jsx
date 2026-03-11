@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import StudentTable from '../components/StudentTable'
 
@@ -82,7 +83,10 @@ export default function Students() {
 
   return (
     <div>
-      <h2 className="text-2xl font-[700] mb-6" style={{ color: 'var(--text)' }}>Students</h2>
+      <h2 className="text-2xl font-[700] mb-6 inline-flex items-center gap-2" style={{ color: 'var(--text)' }}>
+        <Users size={22} strokeWidth={1.75} style={{ color: 'var(--muted2)' }} />
+        Students
+      </h2>
       <StudentTable sessions={sessions} onExport={handleExport} onDelete={handleDelete} />
     </div>
   )

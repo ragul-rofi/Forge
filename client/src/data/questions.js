@@ -2,20 +2,6 @@
 
 export const GATEWAY_QUESTIONS = [
   {
-    id: 'gw1',
-    question_number: 1,
-    mode: 'gateway',
-    signal_type: null,
-    question_type: 'gateway',
-    question_text: 'How much time do you have before placements or your next big opportunity?',
-    options: [
-      { id: 'a', text: '3 years or more — I\'m in 1st or early 2nd year', tag: '3plus_yr', label: 'DEEP EXPLORE' },
-      { id: 'b', text: '1–2 years — I\'m in 2nd or 3rd year', tag: '1_2yr', label: 'BALANCED' },
-      { id: 'c', text: 'Less than 6 months — final year, placements near', tag: 'under_6mo', label: 'FAST TRACK' },
-      { id: 'd', text: 'Already graduated, upskilling now', tag: 'graduated', label: 'FAST TRACK' },
-    ],
-  },
-  {
     id: 'gw2',
     question_number: 2,
     mode: 'gateway',

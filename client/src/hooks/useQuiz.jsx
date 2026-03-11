@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { GATEWAY_QUESTIONS, getQuestionsForMode } from '../data/questions'
 import { calculateProfile, resolveDomain, applyGatewayOverride, calculateValidateVerdict } from '../lib/scoring'
+import { loadQuestionsFromDB, getCachedQuestionsForMode } from '../lib/questionsCache'
 
 const STORAGE_KEY = 'forge-quiz-state'
 const STORAGE_EXPIRY_DAYS = 7
@@ -46,11 +47,16 @@ function loadState() {
 export function useQuiz() {
   const [state, setState] = useState(loadState)
 
+  // Load questions from Supabase in the background; quiz falls back to local data if unavailable
+  useEffect(() => {
+    loadQuestionsFromDB(supabase)
+  }, [])
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, savedAt: Date.now() }))
   }, [state])
 
-  const questions = state.mode ? getQuestionsForMode(state.mode, state.validateTarget) : []
+  const questions = state.mode ? getCachedQuestionsForMode(state.mode, state.validateTarget) : []
   const gatewayQuestions = GATEWAY_QUESTIONS
   const totalQuestions = questions.length
   const isGatewayPhase = state.phase === 'gateway'
@@ -112,19 +118,26 @@ export function useQuiz() {
     }))
   }, [])
 
+  // Derive timeAvailable from the year of study collected in the student info form
+  const yearToTimeAvailable = (year) => {
+    if (year === '1st') return '3plus_yr'
+    if (year === '2nd') return '1_2yr'
+    if (year === '3rd') return '1_2yr'
+    if (year === 'Final') return 'under_6mo'
+    return ''  // graduated / unknown
+  }
+
   const answerGateway = useCallback((answer) => {
+    // Only gw2 (priority) remains — proceed to quiz after 1 answer
     setState(prev => {
       const newGatewayAnswers = [...prev.gatewayAnswers, answer]
-      if (newGatewayAnswers.length >= 2) {
-        return { ...prev, gatewayAnswers: newGatewayAnswers, phase: 'quiz' }
-      }
-      return { ...prev, gatewayAnswers: newGatewayAnswers }
+      return { ...prev, gatewayAnswers: newGatewayAnswers, phase: 'quiz' }
     })
   }, [])
 
   const answerQuestion = useCallback(async (questionId, optionId, scores, tag) => {
     setState(prev => {
-      const modeQuestions = getQuestionsForMode(prev.mode, prev.validateTarget)
+      const modeQuestions = getCachedQuestionsForMode(prev.mode, prev.validateTarget)
       const isReAnswer = prev.currentQuestionIndex < prev.answers.length
       const newAnswer = { questionId, optionId, scores: scores || {}, tag }
 
@@ -156,8 +169,8 @@ export function useQuiz() {
         // Quiz complete — calculate results
         const profileResult = calculateProfile(newAnswers)
         const domainResult = resolveDomain(profileResult.primary, profileResult.auxiliaryScores)
-        const timeAvailable = prev.gatewayAnswers[0]?.tag || ''
-        const priority = prev.gatewayAnswers[1]?.tag || ''
+        const timeAvailable = yearToTimeAvailable(prev.studentInfo?.year || '')
+        const priority = prev.gatewayAnswers[0]?.tag || '' // gw2 answer
 
         let recommendedDomain = domainResult.primary
         let secondDomain = domainResult.secondary
@@ -231,7 +244,7 @@ export function useQuiz() {
 
   const goForward = useCallback(() => {
     setState(prev => {
-      const modeQuestions = getQuestionsForMode(prev.mode, prev.validateTarget)
+      const modeQuestions = getCachedQuestionsForMode(prev.mode, prev.validateTarget)
       // Can only go forward if that question has been answered already
       if (prev.currentQuestionIndex >= prev.answers.length) return prev
       if (prev.currentQuestionIndex >= modeQuestions.length - 1) return prev

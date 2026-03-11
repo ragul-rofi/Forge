@@ -1,22 +1,93 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { PROFILE_NAMES } from '../lib/profiles'
-import { ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react'
+import { ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, X, Trash2 } from 'lucide-react'
 import Badge from './ui/Badge'
 import DomainDot from './ui/DomainDot'
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
+const PAGE_SIZE_OPTIONS = [10, 15, 25, 50, 100]
+
+// ── Custom Dropdown ──────────────────────────────────────────────────────────
+function CustomSelect({ value, onChange, options, placeholder, minWidth = 130 }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const selected = options.find((o) => o.value === value)
+
+  return (
+    <div ref={ref} className="relative" style={{ minWidth }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 text-sm px-3 py-1.5 rounded-lg border transition-colors"
+        style={{
+          backgroundColor: 'var(--surface2)',
+          borderColor: open ? 'var(--accent)' : 'var(--border)',
+          color: value ? 'var(--text)' : 'var(--muted)',
+          boxShadow: open ? '0 0 0 3px rgba(99,102,241,0.1)' : 'none',
+        }}
+      >
+        <span className="truncate">{selected ? selected.label : placeholder}</span>
+        <ChevronDown
+          size={12}
+          style={{
+            flexShrink: 0,
+            color: 'var(--muted)',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 150ms ease',
+          }}
+        />
+      </button>
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 z-30 rounded-lg border overflow-hidden"
+          style={{
+            minWidth: '100%',
+            backgroundColor: 'var(--surface)',
+            borderColor: 'var(--border)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          }}
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              className="w-full text-left text-sm px-3 py-2 transition-colors"
+              style={{
+                color: opt.value === value ? 'var(--accent)' : 'var(--muted2)',
+                backgroundColor: opt.value === value ? 'var(--surface2)' : 'transparent',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--surface2)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = opt.value === value ? 'var(--surface2)' : 'transparent' }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function StudentTable({ sessions = [], onExport, onDelete }) {
   const [page, setPage] = useState(0)
-  const [pageSize, setPageSize] = useState(25)
+  const [pageSize, setPageSize] = useState(10)
   const [sort, setSort] = useState({ key: 'created_at', dir: 'desc' })
   const [selected, setSelected] = useState(new Set())
   const [detailSession, setDetailSession] = useState(null)
 
   // Filters
   const [search, setSearch] = useState('')
-  const [domainFilter, setDomainFilter] = useState([])
+  const [domainFilter, setDomainFilter] = useState('')
   const [modeFilter, setModeFilter] = useState('')
   const [profileFilter, setProfileFilter] = useState('')
   const [yearFilter, setYearFilter] = useState('')
@@ -27,7 +98,6 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
   const filtered = useMemo(() => {
     let data = [...sessions]
 
-    // Deduplicate by email if enabled
     if (dedup) {
       const seen = new Map()
       data.forEach((r) => {
@@ -47,8 +117,8 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
           r.student_email?.toLowerCase().includes(s)
       )
     }
-    if (domainFilter.length) {
-      data = data.filter((r) => domainFilter.includes(r.recommended_domain))
+    if (domainFilter) {
+      data = data.filter((r) => r.recommended_domain === domainFilter)
     }
     if (modeFilter) {
       data = data.filter((r) => r.quiz_mode === modeFilter)
@@ -59,7 +129,6 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
     if (yearFilter) {
       data = data.filter((r) => r.year_of_study === yearFilter)
     }
-    // Sort
     data.sort((a, b) => {
       const aVal = a[sort.key] ?? ''
       const bVal = b[sort.key] ?? ''
@@ -77,10 +146,6 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
       key,
       dir: s.key === key && s.dir === 'asc' ? 'desc' : 'asc',
     }))
-  }
-
-  const toggleDomain = (d) => {
-    setDomainFilter((f) => (f.includes(d) ? f.filter((x) => x !== d) : [...f, d]))
   }
 
   const toggleSelect = (id) => {
@@ -116,70 +181,82 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
     { key: 'created_at', label: 'Date' },
   ]
 
+  const modeOptions = [
+    { value: '', label: 'All Modes' },
+    { value: 'general', label: 'General' },
+    { value: 'advanced', label: 'Advanced' },
+    { value: 'validate', label: 'Validate' },
+  ]
+
+  const profileOptions = [
+    { value: '', label: 'All Profiles' },
+    ...Object.entries(PROFILE_NAMES).map(([k, v]) => ({ value: k, label: v })),
+  ]
+
+  const yearOptions = [
+    { value: '', label: 'All Years' },
+    ...['1st', '2nd', '3rd', '4th', 'Graduate'].map((y) => ({ value: y, label: y })),
+  ]
+
+  const domainOptions = [
+    { value: '', label: 'All Domains' },
+    ...Object.entries(DOMAIN_NAMES).map(([k, v]) => ({ value: k, label: v })),
+  ]
+
+  const pageSizeOptions = PAGE_SIZE_OPTIONS.map((n) => ({ value: n, label: `${n} rows` }))
+
   return (
     <div>
-      {/* Filters — single horizontal row */}
+      {/* Filters — horizontal row with custom dropdowns */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <input
           type="text"
           placeholder="Search name or email..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0) }}
-          className="input text-sm w-56"
+          className="text-sm px-3 py-1.5 rounded-lg border transition-colors"
+          style={{
+            backgroundColor: 'var(--surface2)',
+            borderColor: 'var(--border)',
+            color: 'var(--text)',
+            width: 210,
+            outline: 'none',
+          }}
+          onFocus={(e) => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)' }}
+          onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
         />
 
-        <select
+        <CustomSelect
           value={modeFilter}
-          onChange={(e) => { setModeFilter(e.target.value); setPage(0) }}
-          className="input text-sm"
-        >
-          <option value="">All Modes</option>
-          <option value="general">General</option>
-          <option value="advanced">Advanced</option>
-          <option value="validate">Validate</option>
-        </select>
+          onChange={(v) => { setModeFilter(v); setPage(0) }}
+          options={modeOptions}
+          placeholder="All Modes"
+          minWidth={120}
+        />
 
-        <select
+        <CustomSelect
           value={profileFilter}
-          onChange={(e) => { setProfileFilter(e.target.value); setPage(0) }}
-          className="input text-sm"
-        >
-          <option value="">All Profiles</option>
-          {Object.entries(PROFILE_NAMES).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
+          onChange={(v) => { setProfileFilter(v); setPage(0) }}
+          options={profileOptions}
+          placeholder="All Profiles"
+          minWidth={140}
+        />
 
-        <select
+        <CustomSelect
           value={yearFilter}
-          onChange={(e) => { setYearFilter(e.target.value); setPage(0) }}
-          className="input text-sm"
-        >
-          <option value="">All Years</option>
-          {['1st', '2nd', '3rd', '4th', 'Graduate'].map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
+          onChange={(v) => { setYearFilter(v); setPage(0) }}
+          options={yearOptions}
+          placeholder="All Years"
+          minWidth={110}
+        />
 
-        {/* Domain filter chips inline */}
-        <div className="flex flex-wrap items-center gap-1">
-          {Object.entries(DOMAIN_NAMES).map(([key, name]) => (
-            <button
-              key={key}
-              onClick={() => { toggleDomain(key); setPage(0) }}
-              className={`tag text-[11px] cursor-pointer transition-all px-2 py-0.5 ${domainFilter.includes(key) ? 'ring-2' : 'opacity-50'}`}
-              style={{
-                borderColor: DOMAIN_COLORS[key],
-                color: domainFilter.includes(key) ? DOMAIN_COLORS[key] : 'var(--muted)',
-                ringColor: DOMAIN_COLORS[key],
-              }}
-              title={name}
-            >
-              <DomainDot domain={key} />
-              {name.split(' ')[0]}
-            </button>
-          ))}
-        </div>
+        <CustomSelect
+          value={domainFilter}
+          onChange={(v) => { setDomainFilter(v); setPage(0) }}
+          options={domainOptions}
+          placeholder="All Domains"
+          minWidth={160}
+        />
 
         <div className="flex items-center gap-1 border-l pl-2 ml-auto" style={{ borderColor: 'var(--border)' }}>
           <label className="flex items-center gap-1.5 text-xs cursor-pointer" style={{ color: 'var(--muted)' }}>
@@ -317,15 +394,13 @@ export default function StudentTable({ sessions = [], onExport, onDelete }) {
           <span className="text-xs" style={{ color: 'var(--muted)' }}>
             {filtered.length} total · Page {page + 1} of {totalPages}
           </span>
-          <select
+          <CustomSelect
             value={pageSize}
-            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0) }}
-            className="input text-xs py-1"
-          >
-            {PAGE_SIZE_OPTIONS.map((n) => (
-              <option key={n} value={n}>{n} per page</option>
-            ))}
-          </select>
+            onChange={(v) => { setPageSize(Number(v)); setPage(0) }}
+            options={pageSizeOptions}
+            placeholder="10 rows"
+            minWidth={100}
+          />
         </div>
         <div className="flex gap-2">
           <button

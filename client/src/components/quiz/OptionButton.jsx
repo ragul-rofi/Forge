@@ -33,7 +33,7 @@ export default function OptionButton({ letter, text, selected, previouslySelecte
         >
           {letter.toUpperCase()}
         </span>
-        <span className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+        <span className="text-sm leading-relaxed flex-1 min-w-0" style={{ color: 'var(--text)' }}>
           {text}
         </span>
         {previouslySelected && (

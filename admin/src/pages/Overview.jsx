@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { PROFILE_NAMES } from '../lib/profiles'
+import { Users, CalendarDays, CheckCircle2, Trophy } from 'lucide-react'
 import StatsCard from '../components/StatsCard'
 import AnalyticsChart from '../components/AnalyticsChart'
 
@@ -130,10 +131,10 @@ export default function Overview() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatsCard label="TOTAL SESSIONS" value={stats.total} />
-        <StatsCard label="THIS WEEK" value={stats.thisWeek} />
-        <StatsCard label="COMPLETION RATE" value={`${stats.completionRate}%`} />
-        <StatsCard label="TOP DOMAIN" value={stats.topDomain} />
+        <StatsCard label="TOTAL SESSIONS" value={stats.total} icon={Users} />
+        <StatsCard label="THIS WEEK" value={stats.thisWeek} icon={CalendarDays} />
+        <StatsCard label="COMPLETION RATE" value={`${stats.completionRate}%`} icon={CheckCircle2} />
+        <StatsCard label="TOP DOMAIN" value={stats.topDomain} icon={Trophy} />
       </div>
 
       {/* Latest Sessions */}

@@ -38,6 +38,10 @@ export default function Questions() {
   const [sortKey, setSortKey] = useState('display_order')
   const [sortDir, setSortDir] = useState('asc')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [actionError, setActionError] = useState('')
+  const [seeding, setSeeding] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -47,36 +51,80 @@ export default function Questions() {
   async function fetchQuestions() {
     setLoading(true)
     try {
-      const { data: qs, error: qErr } = await supabase
-        .from('questions')
-        .select('*')
-        .order('display_order', { ascending: true })
+      // Always load full local question bank first
+      const { GATEWAY_QUESTIONS, GENERAL_QUESTIONS, ADVANCED_QUESTIONS, VALIDATE_QUESTIONS } =
+        await import('../data/questions.js')
 
-      if (qErr) throw qErr
+      const buildLocal = (q, type, order) => ({
+        id: `_local_${type}_${order}`,
+        question_text: q.question_text,
+        question_type: type,
+        signal_type: q.signal_type || '',
+        display_order: order,
+        is_active: true,
+        _isLocal: true,
+        _localId: q.id,
+        options: (q.options || []).map((opt, i) => ({
+          id: `_local_opt_${type}_${order}_${i}`,
+          question_id: null,
+          option_text: opt.text, // local uses 'text'; admin format uses 'option_text'
+          scores: opt.scores || {},
+          display_order: i + 1,
+        })),
+      })
 
-      const { data: opts, error: oErr } = await supabase
-        .from('question_options')
-        .select('*')
-        .order('display_order', { ascending: true })
-
-      if (oErr) throw oErr
-
-      const questionsWithOptions = (qs || []).map((q) => ({
-        ...q,
-        options: (opts || []).filter((o) => o.question_id === q.id),
-      }))
-
-      setQuestions(questionsWithOptions)
-    } catch (err) {
-      console.error('Fetch questions error:', err)
-      const { GATEWAY_QUESTIONS, GENERAL_QUESTIONS, ADVANCED_QUESTIONS, VALIDATE_QUESTIONS } = await import('../data/questions.js')
-      const all = [
-        ...GATEWAY_QUESTIONS.map((q, i) => ({ ...q, id: `gw-${i}`, question_type: 'gateway', display_order: i + 1 })),
-        ...GENERAL_QUESTIONS.map((q, i) => ({ ...q, id: `gen-${i}`, question_type: 'general', display_order: i + 1 })),
-        ...ADVANCED_QUESTIONS.map((q, i) => ({ ...q, id: `adv-${i}`, question_type: 'advanced', display_order: i + 1 })),
-        ...VALIDATE_QUESTIONS.map((q, i) => ({ ...q, id: `val-${i}`, question_type: 'validate', display_order: i + 1 })),
+      const localAll = [
+        ...GATEWAY_QUESTIONS.map((q, i) => buildLocal(q, 'gateway', i + 1)),
+        ...GENERAL_QUESTIONS.map((q, i) => buildLocal(q, 'general', i + 1)),
+        ...ADVANCED_QUESTIONS.map((q, i) => buildLocal(q, 'advanced', i + 1)),
+        ...VALIDATE_QUESTIONS.map((q, i) => buildLocal(q, 'validate', i + 1)),
       ]
-      setQuestions(all)
+
+      try {
+        // Overlay with live DB records
+        const { data: qs, error: qErr } = await supabase
+          .from('questions')
+          .select('*')
+          .order('display_order', { ascending: true })
+        if (qErr) throw qErr
+
+        const { data: opts, error: oErr } = await supabase
+          .from('question_options')
+          .select('*')
+          .order('display_order', { ascending: true })
+        if (oErr) throw oErr
+
+        const dbQuestions = (qs || []).map((q) => ({
+          ...q,
+          options: (opts || []).filter((o) => o.question_id === q.id),
+        }))
+
+        // Build index: type:order → dbRecord
+        const dbByKey = new Map()
+        dbQuestions.forEach((q) => dbByKey.set(`${q.question_type}:${q.display_order}`, q))
+
+        // Merge: DB record wins over local placeholder
+        const consumed = new Set()
+        const merged = localAll.map((localQ) => {
+          const key = `${localQ.question_type}:${localQ.display_order}`
+          const dbMatch = dbByKey.get(key)
+          if (dbMatch) { consumed.add(key); return dbMatch }
+          return localQ
+        })
+
+        // Append extra DB questions not covered by local bank (manually added via admin)
+        dbQuestions.forEach((dbQ) => {
+          const key = `${dbQ.question_type}:${dbQ.display_order}`
+          if (!consumed.has(key)) merged.push(dbQ)
+        })
+
+        setQuestions(merged)
+      } catch (dbErr) {
+        console.warn('Supabase unavailable, using local data only:', dbErr)
+        setQuestions(localAll)
+      }
+    } catch (err) {
+      console.error('fetchQuestions error:', err)
     } finally {
       setLoading(false)
     }
@@ -117,6 +165,12 @@ export default function Questions() {
 
     return result
   }, [questions, typeFilter, signalFilter, activeFilter, search, sortKey, sortDir])
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1) }, [typeFilter, signalFilter, activeFilter, search])
+
+  const totalPages = pageSize === 0 ? 1 : Math.ceil(filtered.length / pageSize)
+  const paginatedFiltered = pageSize === 0 ? filtered : filtered.slice((page - 1) * pageSize, page * pageSize)
 
   const toggleSort = (key) => {
     if (sortKey === key) {
@@ -185,13 +239,20 @@ export default function Questions() {
       setShowEditor(true)
     } catch (err) {
       console.error('Add question error:', err)
-      alert('Failed to add question.')
+      setActionError('Failed to add question. Check console for details.')
     }
   }
 
   // --- Delete Question ---
   const deleteQuestion = async (id) => {
     try {
+      // Local-only questions (not yet in DB) — just remove from state
+      if (id && id.startsWith('_local_')) {
+        setQuestions((prev) => prev.filter((q) => q.id !== id))
+        if (selectedId === id) { setSelectedId(null); setShowEditor(false) }
+        setDeleteTarget(null)
+        return
+      }
       await supabase.from('question_options').delete().eq('question_id', id)
       await supabase.from('questions').delete().eq('id', id)
       setQuestions((prev) => prev.filter((q) => q.id !== id))
@@ -202,7 +263,7 @@ export default function Questions() {
       setDeleteTarget(null)
     } catch (err) {
       console.error('Delete error:', err)
-      alert('Failed to delete question.')
+      setActionError('Failed to delete question. Check console for details.')
     }
   }
 
@@ -251,7 +312,7 @@ export default function Questions() {
       setQuestions((prev) => [...prev, { ...data, options: opts || [] }])
     } catch (err) {
       console.error('Duplicate error:', err)
-      alert('Failed to duplicate question.')
+      setActionError('Failed to duplicate question. Check console for details.')
     }
   }
 
@@ -524,10 +585,97 @@ export default function Questions() {
     }
   }
 
+  // --- Reorder Question ---
+  const reorderQuestion = async (id, direction) => {
+    const sorted = [...questions].sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    const idx = sorted.findIndex((q) => q.id === id)
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (targetIdx < 0 || targetIdx >= sorted.length) return
+
+    const a = sorted[idx]
+    const b = sorted[targetIdx]
+    const newOrderA = b.display_order
+    const newOrderB = a.display_order
+
+    try {
+      await supabase.from('questions').update({ display_order: newOrderA }).eq('id', a.id)
+      await supabase.from('questions').update({ display_order: newOrderB }).eq('id', b.id)
+      setQuestions((prev) =>
+        prev.map((q) => {
+          if (q.id === a.id) return { ...q, display_order: newOrderA }
+          if (q.id === b.id) return { ...q, display_order: newOrderB }
+          return q
+        })
+      )
+    } catch (err) {
+      console.error('Reorder error:', err)
+    }
+  }
+
+  // --- Seed all local questions to Supabase ---
+  const seedAllToDb = async () => {
+    setSeeding(true)
+    setActionError('')
+    try {
+      const { GATEWAY_QUESTIONS, GENERAL_QUESTIONS, ADVANCED_QUESTIONS, VALIDATE_QUESTIONS } =
+        await import('../data/questions.js')
+
+      const allLocal = [
+        ...GATEWAY_QUESTIONS.map((q, i) => ({ q, type: 'gateway', order: i + 1 })),
+        ...GENERAL_QUESTIONS.map((q, i) => ({ q, type: 'general', order: i + 1 })),
+        ...ADVANCED_QUESTIONS.map((q, i) => ({ q, type: 'advanced', order: i + 1 })),
+        ...VALIDATE_QUESTIONS.map((q, i) => ({ q, type: 'validate', order: i + 1 })),
+      ]
+
+      // Find which are already in DB to avoid duplicates
+      const { data: existing } = await supabase.from('questions').select('question_type, display_order')
+      const existingKeys = new Set((existing || []).map((q) => `${q.question_type}:${q.display_order}`))
+
+      const toInsert = allLocal.filter(({ type, order }) => !existingKeys.has(`${type}:${order}`))
+
+      for (const { q, type, order } of toInsert) {
+        const { data: newQ, error: qErr } = await supabase
+          .from('questions')
+          .insert({
+            question_text: q.question_text,
+            question_type: type,
+            signal_type: q.signal_type || 'interest',
+            display_order: order,
+            is_active: true,
+          })
+          .select()
+          .single()
+        if (qErr) throw qErr
+
+        const optionsToInsert = (q.options || []).map((opt, i) => ({
+          question_id: newQ.id,
+          option_text: opt.text,
+          scores: opt.scores || {},
+          display_order: i + 1,
+        }))
+        if (optionsToInsert.length > 0) {
+          const { error: oErr } = await supabase.from('question_options').insert(optionsToInsert)
+          if (oErr) throw oErr
+        }
+      }
+
+      await fetchQuestions()
+    } catch (err) {
+      console.error('Seed error:', err)
+      setActionError(`Seed failed: ${err.message}`)
+    } finally {
+      setSeeding(false)
+    }
+  }
+
   // --- Save handler ---
   const handleSave = (updated) => {
     setQuestions((prev) =>
-      prev.map((q) => (q.id === updated.id ? { ...q, ...updated } : q))
+      prev.map((q) =>
+        (q.id === updated.id || (updated._prevLocalId && q.id === updated._prevLocalId))
+          ? { ...q, ...updated }
+          : q
+      )
     )
   }
 
@@ -551,6 +699,19 @@ export default function Questions() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {questions.some((q) => q._isLocal) && (
+            <button
+              onClick={seedAllToDb}
+              disabled={seeding}
+              className="btn-secondary text-sm inline-flex items-center gap-1.5 disabled:opacity-50"
+              style={{ borderColor: '#f97316', color: '#f97316' }}
+              title={`Seed ${questions.filter((q) => q._isLocal).length} local questions to Supabase`}
+            >
+              {seeding
+                ? <><RefreshCw size={14} className="animate-spin" /> Seeding...</>
+                : <><ArrowDownToLine size={14} /> Seed {questions.filter((q) => q._isLocal).length} to DB</>}
+            </button>
+          )}
           <button onClick={addQuestion} className="btn-primary text-sm inline-flex items-center gap-1.5">
             <Plus size={15} /> Add Question
           </button>
@@ -595,7 +756,14 @@ export default function Questions() {
           <select
             value={signalFilter}
             onChange={(e) => setSignalFilter(e.target.value)}
-            className="input text-xs"
+            className="text-xs rounded-lg border px-2.5 py-1.5 transition-colors"
+            style={{
+              backgroundColor: 'var(--surface2)',
+              borderColor: signalFilter ? 'var(--accent)' : 'var(--border)',
+              color: signalFilter ? 'var(--text)' : 'var(--muted)',
+              fontFamily: 'inherit',
+              outline: 'none',
+            }}
           >
             <option value="">All Signals</option>
             {SIGNAL_TYPES.map((s) => (
@@ -603,11 +771,18 @@ export default function Questions() {
             ))}
           </select>
 
-          {/* Active filter */}
+          {/* Status filter */}
           <select
             value={activeFilter}
             onChange={(e) => setActiveFilter(e.target.value)}
-            className="input text-xs"
+            className="text-xs rounded-lg border px-2.5 py-1.5 transition-colors"
+            style={{
+              backgroundColor: 'var(--surface2)',
+              borderColor: activeFilter ? 'var(--accent)' : 'var(--border)',
+              color: activeFilter ? 'var(--text)' : 'var(--muted)',
+              fontFamily: 'inherit',
+              outline: 'none',
+            }}
           >
             <option value="">All Status</option>
             <option value="active">Active</option>
@@ -646,6 +821,20 @@ export default function Questions() {
               onClose={() => setShowEditor(false)}
             />
           </div>
+        </div>
+      )}
+
+      {/* Inline action error */}
+      {actionError && (
+        <div
+          className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-lg mb-3"
+          style={{ backgroundColor: '#f43f5e10', border: '1px solid #f43f5e30', color: '#f43f5e' }}
+        >
+          <AlertTriangle size={14} />
+          <span className="flex-1">{actionError}</span>
+          <button onClick={() => setActionError('')} style={{ color: '#f43f5e' }}>
+            <X size={14} />
+          </button>
         </div>
       )}
 
@@ -695,7 +884,7 @@ export default function Questions() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((q) => (
+              {paginatedFiltered.map((q, idx) => (
                 <QuestionRow
                   key={q.id}
                   question={q}
@@ -705,6 +894,11 @@ export default function Questions() {
                   onDelete={() => setDeleteTarget(q)}
                   onToggleActive={() => toggleActive(q)}
                   onDuplicate={() => duplicateQuestion(q)}
+                  showMoveButtons={sortKey === 'display_order'}
+                  isFirst={idx === 0}
+                  isLast={idx === paginatedFiltered.length - 1}
+                  onMoveUp={() => reorderQuestion(q.id, 'up')}
+                  onMoveDown={() => reorderQuestion(q.id, 'down')}
                 />
               ))}
               {filtered.length === 0 && (
@@ -717,8 +911,54 @@ export default function Questions() {
             </tbody>
           </table>
         </div>
-        <div className="p-3 border-t text-xs" style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}>
-          Showing {filtered.length} of {questions.length} questions
+        <div className="flex items-center justify-between gap-4 p-3 border-t flex-wrap" style={{ borderColor: 'var(--border)' }}>
+          {/* Left: count info */}
+          <p className="text-xs" style={{ color: 'var(--muted)' }}>
+            {filtered.length === 0 ? 'No results' : (
+              pageSize === 0
+                ? `${filtered.length} of ${questions.length} questions`
+                : `${Math.min((page - 1) * pageSize + 1, filtered.length)}–${Math.min(page * pageSize, filtered.length)} of ${filtered.length}`
+            )}
+          </p>
+
+          {/* Right: page size + prev/next */}
+          <div className="flex items-center gap-2">
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1) }}
+              className="text-xs rounded-lg border px-2 py-1"
+              style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--muted)', fontFamily: 'inherit', outline: 'none' }}
+            >
+              {[10, 25, 50, 100].map((n) => (
+                <option key={n} value={n}>{n} per page</option>
+              ))}
+              <option value={0}>Show all</option>
+            </select>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || pageSize === 0}
+                className="px-2.5 py-1 rounded-md text-xs transition-colors disabled:opacity-30"
+                style={{ color: 'var(--muted)', border: '1px solid var(--border)', backgroundColor: 'transparent', cursor: page <= 1 || pageSize === 0 ? 'not-allowed' : 'pointer' }}
+              >
+                ← Prev
+              </button>
+              {pageSize !== 0 && (
+                <span className="text-xs px-2" style={{ color: 'var(--muted)' }}>
+                  {page} / {totalPages}
+                </span>
+              )}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || pageSize === 0}
+                className="px-2.5 py-1 rounded-md text-xs transition-colors disabled:opacity-30"
+                style={{ color: 'var(--muted)', border: '1px solid var(--border)', backgroundColor: 'transparent', cursor: page >= totalPages || pageSize === 0 ? 'not-allowed' : 'pointer' }}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -787,7 +1027,7 @@ export default function Questions() {
 }
 
 // --- Question Row Component ---
-function QuestionRow({ question: q, expanded, onToggle, onEdit, onDelete, onToggleActive, onDuplicate }) {
+function QuestionRow({ question: q, expanded, onToggle, onEdit, onDelete, onToggleActive, onDuplicate, showMoveButtons, isFirst, isLast, onMoveUp, onMoveDown }) {
   const typeColors = {
     gateway: '#f97316',
     general: '#38bdf8',
@@ -819,6 +1059,15 @@ function QuestionRow({ question: q, expanded, onToggle, onEdit, onDelete, onTogg
           >
             {q.question_type}
           </span>
+          {q._isLocal && (
+            <span
+              className="ml-1 text-[9px] px-1.5 py-0.5 rounded font-mono font-semibold align-middle"
+              style={{ backgroundColor: '#f9731620', color: '#f97316' }}
+              title="Not yet saved to database"
+            >
+              LOCAL
+            </span>
+          )}
         </td>
         <td className="p-3 text-xs capitalize" style={{ color: 'var(--muted2)' }}>
           {q.signal_type || '—'}
@@ -838,6 +1087,16 @@ function QuestionRow({ question: q, expanded, onToggle, onEdit, onDelete, onTogg
         </td>
         <td className="p-3 text-right">
           <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            {showMoveButtons && (
+              <>
+                <button onClick={onMoveUp} disabled={isFirst} className="p-1.5 rounded hover:bg-white/10 transition-colors disabled:opacity-25 disabled:cursor-not-allowed" title="Move up" style={{ color: 'var(--muted2)' }}>
+                  <ChevronUp size={14} />
+                </button>
+                <button onClick={onMoveDown} disabled={isLast} className="p-1.5 rounded hover:bg-white/10 transition-colors disabled:opacity-25 disabled:cursor-not-allowed" title="Move down" style={{ color: 'var(--muted2)' }}>
+                  <ChevronDown size={14} />
+                </button>
+              </>
+            )}
             <button onClick={onEdit} className="p-1.5 rounded hover:bg-white/10 transition-colors" title="Edit" style={{ color: 'var(--muted2)' }}>
               <FileText size={14} />
             </button>

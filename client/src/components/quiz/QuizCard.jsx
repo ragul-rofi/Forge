@@ -64,7 +64,7 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
         </h2>
 
         {/* Options */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {question.options.map((option, i) => (
             <OptionButton
               key={option.id}

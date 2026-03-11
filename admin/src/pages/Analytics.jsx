@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { BarChart3, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import AnalyticsChart from '../components/AnalyticsChart'
@@ -270,7 +271,10 @@ export default function Analytics() {
   return (
     <div className="print:bg-white">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-[700]" style={{ color: 'var(--text)' }}>Analytics</h2>
+        <h2 className="text-2xl font-[700] inline-flex items-center gap-2" style={{ color: 'var(--text)' }}>
+          <BarChart3 size={22} strokeWidth={1.75} style={{ color: 'var(--muted2)' }} />
+          Analytics
+        </h2>
         <div className="flex items-center gap-2">
           {TIME_RANGES.map((r) => (
             <button
@@ -284,8 +288,8 @@ export default function Analytics() {
               {r.label}
             </button>
           ))}
-          <button onClick={handleExportPDF} className="btn-secondary text-xs ml-2">
-            Export PDF
+          <button onClick={handleExportPDF} className="btn-secondary text-xs ml-2 inline-flex items-center gap-1.5">
+            <Download size={13} /> Export PDF
           </button>
         </div>
       </div>
