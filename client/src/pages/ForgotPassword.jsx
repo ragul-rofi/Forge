@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Mail } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Logo from '../components/ui/Logo'
-import ThemeToggle from '../components/ui/ThemeToggle'
+
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -33,7 +33,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg)' }}>
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto w-full">
         <Link to="/" className="no-underline"><Logo height={28} /></Link>
-        <ThemeToggle />
+        
       </nav>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">

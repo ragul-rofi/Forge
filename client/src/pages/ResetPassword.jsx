@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Logo from '../components/ui/Logo'
-import ThemeToggle from '../components/ui/ThemeToggle'
 
 export default function ResetPassword() {
   const navigate = useNavigate()
@@ -64,7 +63,6 @@ export default function ResetPassword() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg)' }}>
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto w-full">
         <Link to="/" className="no-underline"><Logo height={28} /></Link>
-        <ThemeToggle />
       </nav>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">

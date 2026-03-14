@@ -5,8 +5,8 @@ const PATHS = [
     mode: 'general',
     icon: Sprout,
     title: 'Start from scratch',
-    description: 'No tech knowledge needed — 12 simple questions to find your fit.',
-    detail: '12 questions · ~5 min',
+    description: 'No tech knowledge needed — 16 simple questions to find your fit.',
+    detail: '16 questions · ~6 min',
   },
   {
     mode: 'advanced',

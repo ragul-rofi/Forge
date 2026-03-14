@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES, PROFILE_ICONS } from '../../lib/constants'
 import { DOMAIN_ROADMAPS } from '../../data/roadmaps'
 import useStudentProgress from '../../hooks/useStudentProgress'
-import ThemeToggle from '../../components/ui/ThemeToggle'
 import Logo from '../../components/ui/Logo'
 import LoadingDots from '../../components/ui/LoadingDots'
 import ProgressRing from '../../components/dashboard/ProgressRing'
@@ -125,7 +124,6 @@ export default function StudentDashboard() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="text-xs px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-white/5 inline-flex items-center gap-1"

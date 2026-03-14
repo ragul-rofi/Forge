@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Logo from '../components/ui/Logo'
-import ThemeToggle from '../components/ui/ThemeToggle'
 
 export default function StudentLogin({ defaultSignUp = false }) {
   const navigate = useNavigate()
@@ -95,7 +94,6 @@ export default function StudentLogin({ defaultSignUp = false }) {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg)' }}>
       <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto w-full">
         <Link to="/" className="no-underline"><Logo height={28} /></Link>
-        <ThemeToggle />
       </nav>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
@@ -258,18 +256,7 @@ export default function StudentLogin({ defaultSignUp = false }) {
             </form>
           </div>
 
-          {/* Below card */}
-          <p className="text-xs text-center mt-5" style={{ color: 'var(--muted)' }}>
-            {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-            <button
-              type="button"
-              onClick={() => switchMode(!isSignUp)}
-              className="underline cursor-pointer"
-              style={{ color: 'var(--accent)', background: 'none', border: 'none', padding: 0, fontSize: 'inherit' }}
-            >
-              {isSignUp ? 'Log in' : 'Sign up free'}
-            </button>
-          </p>
+          
         </div>
       </div>
     </div>

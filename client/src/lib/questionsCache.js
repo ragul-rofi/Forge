@@ -3,6 +3,7 @@
 import {
   GENERAL_QUESTIONS,
   ADVANCED_QUESTIONS,
+  VALIDATE_QUESTIONS,
   getQuestionsForMode,
 } from '../data/questions'
 
@@ -10,6 +11,7 @@ const cache = {
   loaded: false,
   general: null,
   advanced: null,
+  validate: null,
 }
 
 function buildOptions(opts, questionId) {
@@ -30,7 +32,7 @@ export async function loadQuestionsFromDB(supabase) {
     const { data: qs, error: qErr } = await supabase
       .from('questions')
       .select('*')
-      .in('question_type', ['general', 'advanced'])
+      .in('question_type', ['general', 'advanced', 'validate'])
       .eq('is_active', true)
       .order('display_order', { ascending: true })
 
@@ -67,12 +69,26 @@ export async function loadQuestionsFromDB(supabase) {
         _dbId: q.id,
       }))
 
+    const validateDB = qs
+      .filter((q) => q.question_type === 'validate')
+      .map((q, i) => ({
+        id: `v${i + 1}`,
+        question_number: i + 1,
+        mode: 'validate',
+        signal_type: q.signal_type || 'interest',
+        question_type: q.question_type || 'validate',
+        question_text: q.question_text,
+        options: buildOptions(opts, q.id),
+        _dbId: q.id,
+      }))
+
     // Only replace local data if DB has at least as many questions
     // (guards against partial seeding breaking the quiz)
     if (generalDB.length >= GENERAL_QUESTIONS.length) cache.general = generalDB
     if (advancedDB.length >= ADVANCED_QUESTIONS.length) cache.advanced = advancedDB
+    if (validateDB.length >= VALIDATE_QUESTIONS.length) cache.validate = validateDB
 
-    cache.loaded = cache.general !== null || cache.advanced !== null
+    cache.loaded = cache.general !== null || cache.advanced !== null || cache.validate !== null
   } catch (err) {
     console.warn('[questionsCache] load failed, quiz will use local data:', err)
   }
@@ -82,8 +98,15 @@ export function getCachedQuestionsForMode(mode, validateTarget) {
   if (cache.loaded) {
     const general = cache.general || GENERAL_QUESTIONS
     const advanced = cache.advanced || ADVANCED_QUESTIONS
+    const validate = cache.validate || null
     if (mode === 'general') return general
-    if (mode === 'advanced') return [...general, ...advanced]
+    if (mode === 'advanced') return advanced
+    if (mode === 'validate' && validate) {
+      return validate.map((q) => ({
+        ...q,
+        question_text: (q.question_text || '').replaceAll('{SELECTED_DOMAIN}', validateTarget || 'this domain'),
+      }))
+    }
     // validate mode uses local VALIDATE_QUESTIONS + domain-specific slices
     // (those have tag/verdict logic tied to local IDs — keep as-is)
   }

@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { DOMAIN_ROADMAPS } from '../data/roadmaps'
-import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
 import ProfileReveal from '../components/result/ProfileReveal'
 import DomainCard from '../components/result/DomainCard'
@@ -162,7 +161,6 @@ export default function Result() {
         <Link to="/" className="no-underline">
           <Logo height={28} />
         </Link>
-        <ThemeToggle />
       </nav>
 
       <div className="max-w-2xl mx-auto px-6 pb-16 pt-8">

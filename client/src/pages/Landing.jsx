@@ -8,7 +8,6 @@ import {
   Timer, IndianRupee, Layers, GitBranch,
   MessageCircle, Activity, Compass,
 } from 'lucide-react'
-import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 
@@ -59,7 +58,6 @@ export default function Landing() {
           >
             Sign Up
           </Link>
-          <ThemeToggle />
         </div>
       </nav>
 
@@ -86,7 +84,7 @@ export default function Landing() {
 
         <RevealOnScroll delay={160}>
           <p className="text-base md:text-lg max-w-lg mb-12 leading-relaxed" style={{ color: 'var(--muted)' }}>
-            12 questions. No jargon. No guessing.<br className="hidden md:block" />
+            16 questions. No jargon. No guessing.<br className="hidden md:block" />
             Just an honest look at who you are — and where that leads in tech.
           </p>
         </RevealOnScroll>
@@ -244,7 +242,7 @@ export default function Landing() {
               to="/quiz?mode=general"
               label="NO IDEA"
               title="Start from scratch"
-              desc="12 questions · ~5 min"
+              desc="16 questions · ~6 min"
               detail="Figure out who you are first."
             />
           </RevealOnScroll>

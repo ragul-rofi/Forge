@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuiz } from '../hooks/useQuiz'
 import { ArrowRight } from 'lucide-react'
-import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
 import PathSelector from '../components/quiz/PathSelector'
 import GatewayQuestion from '../components/quiz/GatewayQuestion'
@@ -141,7 +140,6 @@ export default function Quiz() {
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
         <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
           <Logo height={28} />
-          <ThemeToggle />
         </nav>
         <div className="px-6 pb-16 pt-8 max-w-md mx-auto fade-in">
           <div className="text-center mb-8">
@@ -201,7 +199,7 @@ export default function Quiz() {
         >
           <Logo height={28} />
         </span>
-        <ThemeToggle />
+       
       </nav>
 
       <div className="px-6 pb-16 pt-8 max-w-4xl mx-auto">

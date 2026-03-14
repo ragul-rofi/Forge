@@ -1,7 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
 import { LayoutDashboard, Users, FileQuestion, Map, BarChart3, LogOut, Menu, X } from 'lucide-react'
-import ThemeToggle from './ui/ThemeToggle'
 import Badge from './ui/Badge'
 import Logo from './ui/Logo'
 import { useState } from 'react'
@@ -62,7 +61,6 @@ export default function AdminLayout() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="text-sm px-3 py-1.5 rounded-md transition-colors hover:bg-white/5 hidden md:inline-flex items-center gap-1.5"
