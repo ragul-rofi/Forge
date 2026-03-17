@@ -30,6 +30,7 @@ export default function Overview() {
   const [modeDist, setModeDist] = useState([])
 
   useEffect(() => {
+    document.title = 'FORGE Admin — Overview'
     fetchData()
 
     // Realtime subscription for recent activity

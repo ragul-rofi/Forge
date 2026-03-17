@@ -30,7 +30,7 @@ function getTransporter() {
   return transporter
 }
 
-const FROM_EMAIL = process.env.MAIL_FROM_EMAIL || process.env.GMAIL_USER || 'noreply@forge.dev'
+const FROM_EMAIL = process.env.MAIL_FROM_EMAIL || process.env.GMAIL_USER || 'srini@tryforge.site'
 const FROM_NAME = 'FORGE'
 
 async function sendEmail({ to, subject, html }) {

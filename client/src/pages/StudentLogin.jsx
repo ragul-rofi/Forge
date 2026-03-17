@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase, signInStudent, signUpStudent } from '../lib/supabase'
 import Logo from '../components/ui/Logo'
 
 export default function StudentLogin({ defaultSignUp = false }) {
@@ -23,10 +23,41 @@ export default function StudentLogin({ defaultSignUp = false }) {
   const domain = searchParams.get('domain')
   const profile = searchParams.get('profile')
 
+  useEffect(() => {
+    document.title = 'FORGE — Login'
+  }, [])
+
   const switchMode = (toSignUp) => {
     setIsSignUp(toSignUp)
     setError(null)
     setSuccessMsg(null)
+  }
+
+  const friendlyAuthError = (err) => {
+    const message = (err?.message || '').toLowerCase()
+    if (message.includes('invalid login credentials')) return 'Incorrect email or password.'
+    if (message.includes('email not confirmed')) return 'Please verify your email first, then sign in.'
+    if (message.includes('user already registered')) return 'Account already exists. Please sign in.'
+    if (err?.status === 400) return 'Unable to sign in. Please check your details and try again.'
+    return err?.message || 'Something went wrong. Please try again.'
+  }
+
+  const buildFallbackName = (normalizedEmail) => {
+    if (name?.trim()) return name.trim()
+    return normalizedEmail.split('@')[0] || 'Student'
+  }
+
+  const ensureStudentProfile = async (authUserId, normalizedEmail) => {
+    const { error: studentErr } = await supabase.from('students').upsert({
+      id: authUserId,
+      email: normalizedEmail,
+      name: buildFallbackName(normalizedEmail),
+      quiz_session_id: sessionId || null,
+      domain: domain || null,
+      profile_type: profile || null,
+    }, { onConflict: 'id' })
+
+    if (studentErr) throw studentErr
   }
 
   const handleSubmit = async (e) => {
@@ -42,37 +73,40 @@ export default function StudentLogin({ defaultSignUp = false }) {
     setLoading(true)
 
     try {
+      const normalizedEmail = email.trim().toLowerCase()
+
       if (isSignUp) {
-        const { data: authData, error: signUpErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: name } },
-        })
+        const { data: authData, error: signUpErr } = await signUpStudent(normalizedEmail, password)
         if (signUpErr) throw signUpErr
 
-        // Create student record
-        if (authData.user) {
-          await supabase.from('students').insert({
-            id: authData.user.id,
-            email,
-            name,
-            quiz_session_id: sessionId || null,
-            domain: domain || null,
-            profile_type: profile || null,
-          })
+        const alreadyRegistered =
+          authData?.user &&
+          Array.isArray(authData.user.identities) &&
+          authData.user.identities.length === 0
+
+        if (alreadyRegistered) {
+          setIsSignUp(false)
+          setSuccessMsg('Account already exists. Please sign in.')
+          return
+        }
+
+        if (authData?.session?.user?.id) {
+          await ensureStudentProfile(authData.session.user.id, normalizedEmail)
+          navigate('/dashboard')
+          return
         }
 
         setSuccessMsg('Check your email to confirm your account.')
       } else {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
+        const { data: signInData, error: signInErr } = await signInStudent(normalizedEmail, password)
         if (signInErr) throw signInErr
+        if (signInData?.user?.id) {
+          await ensureStudentProfile(signInData.user.id, normalizedEmail)
+        }
         navigate('/dashboard')
       }
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAuthError(err))
     } finally {
       setLoading(false)
     }

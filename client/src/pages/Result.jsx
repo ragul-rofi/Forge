@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { supabase, signInStudent, signUpStudent } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { DOMAIN_ROADMAPS } from '../data/roadmaps'
 import Logo from '../components/ui/Logo'
@@ -13,15 +13,26 @@ import FastMoneyAlt from '../components/result/FastMoneyAlt'
 import IncomeTimeline from '../components/result/IncomeTimeline'
 import NotMyVibeButton from '../components/result/NotMyVibeButton'
 import StartTodayTimer from '../components/result/StartTodayTimer'
+import SriniCard from '../components/voice/SriniCard'
 import LoadingDots from '../components/ui/LoadingDots'
 import { ArrowRight, ArrowLeft, Bookmark } from 'lucide-react'
 
 export default function Result() {
+  const navigate = useNavigate()
   const { sessionId } = useParams()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [existingStudent, setExistingStudent] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  useEffect(() => {
+    document.title = 'FORGE — Your Result'
+  }, [])
 
   useEffect(() => {
     async function fetchSession() {
@@ -67,6 +78,10 @@ export default function Result() {
 
         if (fetchError) throw fetchError
         setSession(data)
+        if (data?.student_email) {
+          setEmail(data.student_email)
+          checkStudentExists(data.student_email)
+        }
 
         // Send result email if not already sent
         if (data && !data.email_sent) {
@@ -79,7 +94,7 @@ export default function Result() {
         if (saved) {
           const state = JSON.parse(saved)
           if (state.result) {
-            setSession({
+            const localSession = {
               student_name: state.studentInfo.name,
               student_email: state.studentInfo.email,
               primary_profile: state.result.primary,
@@ -93,7 +108,10 @@ export default function Result() {
               time_available: state.result.timeAvailable,
               priority: state.result.priority,
               overrideReason: state.result.overrideReason,
-            })
+            }
+            setSession(localSession)
+            setEmail(localSession.student_email || '')
+            if (localSession.student_email) checkStudentExists(localSession.student_email)
           } else {
             setError('Session not found')
           }
@@ -107,6 +125,16 @@ export default function Result() {
 
     fetchSession()
   }, [sessionId])
+
+  async function checkStudentExists(studentEmail) {
+    if (!studentEmail) return
+    const { data } = await supabase
+      .from('students')
+      .select('id')
+      .eq('email', studentEmail)
+      .maybeSingle()
+    setExistingStudent(!!data?.id)
+  }
 
   async function sendResultEmail(name, email, domain, sid) {
     try {
@@ -128,6 +156,88 @@ export default function Result() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
+  }
+
+  async function persistStudentRecord(authUserId, normalizedEmail = email) {
+    const domain = session.recommended_domain
+    const roadmap = DOMAIN_ROADMAPS[domain]
+    const { error: upsertError } = await supabase.from('students').upsert({
+      id: authUserId,
+      email: normalizedEmail,
+      name: session.student_name || 'Student',
+      domain,
+      profile_type: session.primary_profile,
+      quiz_session_id: sessionId,
+      roadmap_data: roadmap,
+      phase_progress: { phase_1: 'not_started' },
+      last_active_date: new Date().toISOString().slice(0, 10),
+    }, { onConflict: 'id' })
+
+    if (upsertError) throw upsertError
+  }
+
+  const friendlyAuthError = (err) => {
+    const message = (err?.message || '').toLowerCase()
+    if (message.includes('invalid login credentials')) return 'Incorrect email or password.'
+    if (message.includes('email not confirmed')) return 'Please verify your email first, then sign in.'
+    if (message.includes('user already registered')) return 'Account already exists. Please sign in.'
+    if (err?.status === 400) return 'Unable to continue. Please check your details and try again.'
+    return err?.message || 'Unable to save roadmap. Please try again.'
+  }
+
+  async function handleSaveRoadmap(e) {
+    e.preventDefault()
+    setAuthError('')
+    setAuthLoading(true)
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+
+      if (!normalizedEmail || !password) {
+        setAuthError('Please enter email and password.')
+        return
+      }
+
+      if (existingStudent) {
+        const { data, error: signInError } = await signInStudent(normalizedEmail, password)
+        if (signInError) throw signInError
+        if (data?.user?.id) {
+          await persistStudentRecord(data.user.id, normalizedEmail)
+          navigate('/dashboard')
+        }
+        return
+      }
+
+      const { data, error: signUpError } = await signUpStudent(normalizedEmail, password)
+      if (signUpError) throw signUpError
+
+      const alreadyRegistered =
+        data?.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0
+
+      if (alreadyRegistered) {
+        setExistingStudent(true)
+        setAuthError('Account already exists. Please sign in with your password.')
+        return
+      }
+
+      if (data?.session?.user?.id) {
+        await persistStudentRecord(data.session.user.id, normalizedEmail)
+        navigate('/dashboard')
+        return
+      }
+
+      const { data: signInData, error: postSignInError } = await signInStudent(normalizedEmail, password)
+      if (postSignInError) throw postSignInError
+      if (signInData?.user?.id) {
+        await persistStudentRecord(signInData.user.id, normalizedEmail)
+      }
+      navigate('/dashboard')
+    } catch (err) {
+      setAuthError(friendlyAuthError(err))
+    } finally {
+      setAuthLoading(false)
+    }
   }
 
   if (loading) {
@@ -280,28 +390,6 @@ export default function Result() {
           </section>
         )}
 
-        {/* Save Your Roadmap CTA */}
-        <section className="mb-8">
-          <div
-            className="card p-6 text-center"
-            style={{ border: `2px solid ${domainColor}`, background: `${domainColor}08` }}
-          >
-            <Bookmark size={28} className="mx-auto mb-3" style={{ color: domainColor }} />
-            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
-              Save Your Roadmap
-            </h3>
-            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-              Create a free account to keep your roadmap, track progress, and get AI-powered guidance.
-            </p>
-            <a
-              href={`/login-student?signup=true&session=${sessionId}&domain=${domain}&profile=${session.primary_profile}`}
-              className="btn-primary no-underline inline-flex items-center gap-2"
-            >
-              Create Free Account <ArrowRight size={16} />
-            </a>
-          </div>
-        </section>
-
         {/* Section 4: Roadmap */}
         {roadmap && (
           <section className="mb-8">
@@ -323,6 +411,67 @@ export default function Result() {
             <CertificationRow certifications={roadmap.certifications} domainColor={domainColor} />
           </section>
         )}
+
+        <section className="mb-8">
+          <div className="card p-6" style={{ backgroundColor: 'var(--surface2)', border: '1px solid var(--border2)' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <Bookmark size={18} style={{ color: domainColor }} />
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Your roadmap disappears when you close this tab.</h3>
+            </div>
+            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+              Save it in 30 seconds. Track your progress. Talk to Srini anytime.
+            </p>
+
+            {existingStudent ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-full py-3 text-sm font-semibold"
+                style={{ backgroundColor: domainColor, color: 'var(--bg)', border: 'none', borderRadius: 'var(--radius-sm)' }}
+              >
+                Continue in Dashboard →
+              </button>
+            ) : (
+              <form onSubmit={handleSaveRoadmap} className="space-y-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  required
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create password"
+                  required
+                  minLength={6}
+                />
+                {authError && <p className="text-xs" style={{ color: '#f43f5e' }}>{authError}</p>}
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full py-3 text-sm font-semibold"
+                  style={{ backgroundColor: domainColor, color: 'var(--bg)', border: 'none', borderRadius: 'var(--radius-sm)', opacity: authLoading ? 0.7 : 1 }}
+                >
+                  {authLoading ? 'Saving...' : 'Save My Roadmap →'}
+                </button>
+                <Link to="/login" className="block text-xs text-center no-underline" style={{ color: 'var(--muted)' }}>
+                  Already have an account? Sign in →
+                </Link>
+              </form>
+            )}
+          </div>
+        </section>
+
+        <section className="mb-8">
+          <SriniCard
+            student={{ name: session.student_name, email: session.student_email, year: session.year_of_study, timeAvailable: session.time_available, priority: session.priority }}
+            domain={domain}
+            profile={session.primary_profile}
+            sessionId={sessionId}
+          />
+        </section>
 
         {/* Section 6: Secondary domain + Share */}
         <section className="space-y-4">

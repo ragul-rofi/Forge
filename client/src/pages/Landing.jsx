@@ -40,8 +40,19 @@ const STEPS = [
 ]
 
 export default function Landing() {
+  useEffect(() => {
+    document.title = "FORGE — Don't find your path. Forge it."
+  }, [])
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: 'var(--bg)',
+        backgroundImage: "radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 0)",
+        backgroundSize: '14px 14px',
+      }}
+    >
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <Logo height={32} />
@@ -62,23 +73,16 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 md:pt-32 md:pb-40">
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-14 pb-20 md:pt-24 md:pb-24">
         <RevealOnScroll>
           <span className="text-sm font-medium mb-8 block" style={{ color: 'var(--muted)' }}>Student Career Profiler</span>
         </RevealOnScroll>
 
         <RevealOnScroll delay={80}>
-          <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-[800] tracking-tight leading-[0.95] mb-8">
-            <span style={{ color: 'var(--muted2)' }}>Don't find</span>
+          <h1 className="font-[800] tracking-tight leading-[0.95] mb-8" style={{ fontSize: 'clamp(44px, 6vw, 88px)' }}>
+            <span style={{ color: 'var(--muted2)' }}>Don't find your path.</span>
             <br />
-            <span style={{ color: 'var(--muted2)' }}>your path.</span>
-            <br />
-            <span className="relative" style={{ color: 'var(--text)' }}>
-              Forge it
-              <svg className="absolute -bottom-2 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none">
-                <path d="M0 3 Q50 0 100 3 Q150 6 200 3" stroke="var(--text)" strokeWidth="2" fill="none" opacity="0.3" />
-              </svg>
-            </span>
+            <span style={{ color: 'var(--text)' }}>Forge it.</span>
           </h1>
         </RevealOnScroll>
 
@@ -90,9 +94,27 @@ export default function Landing() {
         </RevealOnScroll>
 
         <RevealOnScroll delay={240}>
-          <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block group">
+          <Link
+            to="/quiz"
+            className="text-base md:text-lg px-10 py-4 no-underline inline-block group"
+            style={{
+              backgroundColor: 'var(--text)',
+              color: 'var(--bg)',
+              fontWeight: 800,
+              borderRadius: 'var(--radius)',
+              transition: 'transform 150ms ease, box-shadow 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.18)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
             <span className="inline-flex items-center gap-2">
-              Find My Path
+              Find My Path →
               <ArrowRight size={18} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
             </span>
           </Link>
@@ -105,20 +127,21 @@ export default function Landing() {
       {/* Stats strip */}
       <section className="border-t border-b" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
         <div className="max-w-5xl mx-auto px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x" style={{ '--tw-divide-opacity': 1 }}>
-            {[
-              { icon: Layers,       value: '13',        label: 'Tech domains' },
-              { icon: GitBranch,    value: '7',         label: 'Profile types' },
-              { icon: Timer,        value: '4–12 min',  label: 'To your result' },
-              { icon: IndianRupee,  value: 'Real data', label: 'India salary ranges' },
-            ].map(({ icon: Icon, value, label }) => (
-              <div key={label} className="flex items-center gap-3 md:px-8 first:pl-0 last:pr-0">
-                <Icon size={18} strokeWidth={1.5} style={{ color: 'var(--muted2)', flexShrink: 0 }} />
-                <div>
-                  <p className="text-sm font-[700] leading-tight" style={{ color: 'var(--text)' }}>{value}</p>
-                  <p className="text-xs" style={{ color: 'var(--muted)' }}>{label}</p>
-                </div>
-              </div>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {['8 DOMAINS', '3 PATHS', 'REAL SALARY DATA'].map((chip) => (
+              <span
+                key={chip}
+                className="px-3 py-2 rounded-full text-[10px] uppercase"
+                style={{
+                  backgroundColor: 'var(--surface2)',
+                  border: '1px solid var(--border2)',
+                  color: 'var(--muted2)',
+                  letterSpacing: '3px',
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}
+              >
+                {chip}
+              </span>
             ))}
           </div>
         </div>

@@ -4,6 +4,7 @@ import { LayoutDashboard, Users, FileQuestion, Map, BarChart3, LogOut, Menu, X }
 import Badge from './ui/Badge'
 import Logo from './ui/Logo'
 import { useState } from 'react'
+import ThemeToggle from './ui/ThemeToggle'
 
 const navLinks = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
@@ -61,6 +62,7 @@ export default function AdminLayout() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="text-sm px-3 py-1.5 rounded-md transition-colors hover:bg-white/5 hidden md:inline-flex items-center gap-1.5"
@@ -114,6 +116,12 @@ export default function AdminLayout() {
 
       {/* Page content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div
+          className="md:hidden mb-4 p-3 rounded"
+          style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}
+        >
+          Admin dashboard is best viewed on desktop
+        </div>
         <Outlet />
       </main>
     </div>

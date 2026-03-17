@@ -45,6 +45,7 @@ export default function Questions() {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
+    document.title = 'FORGE Admin — Questions'
     fetchQuestions()
   }, [])
 

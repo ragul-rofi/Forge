@@ -1,30 +1,44 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { DOMAIN_COLORS, DOMAIN_NAMES, PROFILE_ICONS } from '../../lib/constants'
+import { DOMAIN_COLORS, DOMAIN_NAMES } from '../../lib/constants'
 import { DOMAIN_ROADMAPS } from '../../data/roadmaps'
 import useStudentProgress from '../../hooks/useStudentProgress'
-import Logo from '../../components/ui/Logo'
 import LoadingDots from '../../components/ui/LoadingDots'
-import ProgressRing from '../../components/dashboard/ProgressRing'
-import PhaseCard from '../../components/dashboard/PhaseCard'
+import DashboardNav from '../../components/dashboard/DashboardNav'
+import ProfileBadge from '../../components/dashboard/ProfileBadge'
+import RoadmapView from '../../components/dashboard/RoadmapView'
 import CertTracker from '../../components/dashboard/CertTracker'
 import AIPersonalizer from '../../components/dashboard/AIPersonalizer'
 import OnboardingTour from '../../components/dashboard/OnboardingTour'
-import { LogOut, Flame, Map, BarChart3, Compass } from 'lucide-react'
+import SriniFloat from '../../components/dashboard/SriniFloat'
+import SriniCard from '../../components/voice/SriniCard'
+import { Flame } from 'lucide-react'
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [activeTab, setActiveTab] = useState('roadmap')
+  const [showSrini, setShowSrini] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
+
+  useEffect(() => {
+    document.title = 'FORGE — My Roadmap'
+  }, [])
+
+  useEffect(() => {
+    if (location.pathname === '/dashboard/explore') setActiveTab('explore')
+    else if (location.pathname === '/dashboard/progress') setActiveTab('progress')
+    else setActiveTab('roadmap')
+  }, [location.pathname])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
         setUser(data.user)
       } else {
-        navigate('/login-student')
+        navigate('/login')
       }
       setAuthLoading(false)
     })
@@ -67,8 +81,8 @@ export default function StudentDashboard() {
   if (!student) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: 'var(--bg)' }}>
-        <p style={{ color: 'var(--muted)' }}>No student profile found.</p>
-        <Link to="/quiz" className="btn-primary no-underline">Take the Quiz</Link>
+        <p style={{ color: 'var(--muted)' }}>You haven't taken the quiz yet.</p>
+        <Link to="/quiz" className="btn-primary no-underline">Take the Quiz →</Link>
       </div>
     )
   }
@@ -84,12 +98,6 @@ export default function StudentDashboard() {
     ? Math.floor((Date.now() - new Date(student.created_at).getTime()) / 86400000)
     : 0
 
-  const tabs = [
-    { key: 'roadmap', label: 'MY ROADMAP', icon: Map },
-    { key: 'progress', label: 'PROGRESS', icon: BarChart3 },
-    { key: 'explore', label: 'EXPLORE', icon: Compass },
-  ]
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       {/* Show onboarding tour on first visit */}
@@ -97,94 +105,47 @@ export default function StudentDashboard() {
         <OnboardingTour onComplete={handleOnboardingComplete} />
       )}
 
-      {/* Navbar */}
-      <nav
-        className="sticky top-0 z-40 border-b backdrop-blur-md"
-        style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-card)' }}
-      >
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-between h-14">
-          <Link to="/" className="no-underline">
-            <Logo height={22} />
-          </Link>
-          <div className="flex items-center gap-1">
-            {tabs.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className="px-3 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors inline-flex items-center gap-1.5"
-                style={{
-                  backgroundColor: activeTab === tab.key ? 'var(--bg)' : 'transparent',
-                  color: activeTab === tab.key ? 'var(--text)' : 'var(--muted)',
-                  border: 'none',
-                }}
-              >
-                <tab.icon size={13} />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleLogout}
-              className="text-xs px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-white/5 inline-flex items-center gap-1"
-              style={{ color: 'var(--muted)', background: 'none', border: 'none' }}
-            >
-              <LogOut size={14} />
-            </button>
-          </div>
-        </div>
-      </nav>
+      <DashboardNav
+        onLogout={handleLogout}
+        onSriniOpen={() => setShowSrini((prev) => !prev)}
+      />
 
       <div className="max-w-2xl mx-auto px-4 pb-16 pt-6">
-        {/* Profile Card */}
-        <section className="card p-5 mb-6">
-          <div className="flex items-center gap-4">
-            <ProgressRing completed={completedPhases} total={5} color={domainColor} />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span
-                  className="text-xs font-bold px-2 py-0.5 rounded"
-                  style={{ backgroundColor: `${domainColor}20`, color: domainColor }}
-                >
-                  THE {student.profile_type?.toUpperCase()}
-                </span>
-                <span
-                  className="text-xs font-semibold"
-                  style={{ color: domainColor }}
-                >
-                  {DOMAIN_NAMES[domain]}
-                </span>
-              </div>
-              <p className="text-sm" style={{ color: 'var(--text)' }}>
-                {student.name}
-              </p>
-              <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: 'var(--muted)' }}>
-                <span>{daysSinceStart} days active</span>
-                {student.streak_days > 0 && (
-                  <span className="inline-flex items-center gap-1">
-                    <Flame size={12} style={{ color: '#f97316' }} />
-                    {student.streak_days} day streak
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+        <ProfileBadge
+          student={student}
+          domainColor={domainColor}
+          completedPhases={completedPhases}
+          daysSinceStart={daysSinceStart}
+        />
 
         {/* Tab Content */}
         {activeTab === 'roadmap' && roadmap && (
-          <RoadmapTab
-            roadmap={roadmap}
-            domain={domain}
-            domainColor={domainColor}
-            student={student}
-            currentPhase={currentPhase}
-            isPhaseComplete={isPhaseComplete}
-            toggleTask={toggleTask}
-            completePhase={completePhase}
-            updateRoadmapData={updateRoadmapData}
-            updateCertStatus={updateCertStatus}
-          />
+          <>
+            <RoadmapView
+              roadmap={roadmap}
+              domainColor={domainColor}
+              student={student}
+              currentPhase={currentPhase}
+              isPhaseComplete={isPhaseComplete}
+              toggleTask={toggleTask}
+              completePhase={completePhase}
+            />
+            <section id="cert-section" className="mb-8">
+              <CertTracker
+                certifications={roadmap.certifications || []}
+                domainColor={domainColor}
+                certProgress={student.phase_progress?.certifications || {}}
+                onUpdateStatus={updateCertStatus}
+              />
+            </section>
+            <section id="ai-section" className="mb-8">
+              <AIPersonalizer
+                student={{ ...student, currentPhase }}
+                roadmap={roadmap}
+                onRoadmapChange={updateRoadmapData}
+              />
+            </section>
+          </>
         )}
 
         {activeTab === 'progress' && (
@@ -198,55 +159,20 @@ export default function StudentDashboard() {
         )}
 
         {activeTab === 'explore' && <ExploreTab currentDomain={domain} />}
-      </div>
-    </div>
-  )
-}
 
-function RoadmapTab({
-  roadmap, domain, domainColor, student, currentPhase,
-  isPhaseComplete, toggleTask, completePhase, updateRoadmapData, updateCertStatus,
-}) {
-  return (
-    <>
-      {/* Roadmap Phases */}
-      <section id="roadmap-section" className="mb-8">
-        <h3 className="section-label mb-4">Your Roadmap</h3>
-        {roadmap.phases.map((phase) => (
-          <div key={phase.number} id={phase.number === 1 ? 'phase-card' : undefined}>
-            <PhaseCard
-              phase={phase}
-              phaseNumber={phase.number}
-              domainColor={domainColor}
-              isCurrentPhase={phase.number === currentPhase}
-              isComplete={isPhaseComplete(phase.number)}
-              checkedTasks={student.phase_progress?.[`phase_${phase.number}`] || []}
-              onToggleTask={toggleTask}
-              onCompletePhase={completePhase}
+        {showSrini && (
+          <section className="mb-8">
+            <SriniCard
+              student={{ name: student.name, email: student.email, year: student.year_of_study, timeAvailable: student.time_available, priority: student.priority }}
+              domain={domain}
+              profile={student.profile_type}
             />
-          </div>
-        ))}
-      </section>
+          </section>
+        )}
+      </div>
 
-      {/* Certifications */}
-      <section id="cert-section" className="mb-8">
-        <CertTracker
-          certifications={roadmap.certifications || []}
-          domainColor={domainColor}
-          certProgress={student.phase_progress?.certifications || {}}
-          onUpdateStatus={updateCertStatus}
-        />
-      </section>
-
-      {/* AI Personalizer */}
-      <section id="ai-section" className="mb-8">
-        <AIPersonalizer
-          student={{ ...student, currentPhase }}
-          roadmap={roadmap}
-          onRoadmapChange={updateRoadmapData}
-        />
-      </section>
-    </>
+      <SriniFloat onClick={() => setShowSrini((prev) => !prev)} />
+    </div>
   )
 }
 

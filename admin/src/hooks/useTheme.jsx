@@ -1,15 +1,27 @@
-import { useEffect, createContext, useContext } from 'react'
+import { useEffect, useState, createContext, useContext } from 'react'
 
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('dark')
+
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'dark')
-    localStorage.removeItem('forge-theme')
+    const savedTheme = localStorage.getItem('forge-theme-admin') || 'dark'
+    setTheme(savedTheme)
+    document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
 
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark'
+      document.documentElement.setAttribute('data-theme', next)
+      localStorage.setItem('forge-theme-admin', next)
+      return next
+    })
+  }
+
   return (
-    <ThemeContext.Provider value={{ theme: 'dark' }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   )

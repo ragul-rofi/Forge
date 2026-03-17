@@ -41,6 +41,12 @@ const DOMAIN_OPTIONS = [
 ]
 
 export default function PathSelector({ onSelect, selectedDomain, onDomainChange }) {
+  const badgeStyles = {
+    general: { background: 'rgba(255,255,255,0.08)', color: 'var(--text)' },
+    advanced: { background: 'rgba(244,63,94,0.12)', color: '#f43f5e' },
+    validate: { background: 'rgba(251,191,36,0.12)', color: '#fbbf24' },
+  }
+
   return (
     <div className="fade-in w-full max-w-xl mx-auto">
       <div className="text-center mb-10">
@@ -54,20 +60,47 @@ export default function PathSelector({ onSelect, selectedDomain, onDomainChange 
 
       <div className="flex flex-col gap-4">
         {PATHS.map(path => (
-          <div key={path.mode} className="card cursor-pointer group" onClick={() => {
+          <div
+            key={path.mode}
+            className="cursor-pointer group"
+            style={{
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: 20,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.border = '2px solid var(--accent)'
+              e.currentTarget.style.padding = '19px'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.border = '1px solid var(--border)'
+              e.currentTarget.style.padding = '20px'
+            }}
+            onClick={() => {
             if (path.mode === 'validate' && !selectedDomain) return
             onSelect(path.mode, path.mode === 'validate' ? selectedDomain : null)
           }}>
             <div className="flex items-start gap-4">
               <span className="text-2xl mt-0.5"><path.icon size={24} strokeWidth={1.5} style={{ color: 'var(--text)' }} /></span>
               <div className="flex-1">
+                <span
+                  className="inline-block text-[10px] uppercase px-2 py-1 rounded mb-2"
+                  style={{
+                    ...badgeStyles[path.mode],
+                    fontFamily: 'JetBrains Mono, monospace',
+                    letterSpacing: '3px',
+                  }}
+                >
+                  {path.mode}
+                </span>
                 <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>
                   {path.title}
                 </h3>
                 <p className="text-sm mb-2" style={{ color: 'var(--muted)' }}>
                   {path.description}
                 </p>
-                <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                <span className="text-[10px] px-2 py-1 rounded" style={{ color: 'var(--muted2)', backgroundColor: 'var(--surface3)', fontFamily: 'JetBrains Mono, monospace' }}>
                   {path.detail}
                 </span>
               </div>

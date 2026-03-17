@@ -48,6 +48,10 @@ export default function Quiz() {
   const [emailGateError, setEmailGateError] = useState('')
   const hasSaved = useRef(false)
 
+  useEffect(() => {
+    document.title = 'FORGE — Find Your Path'
+  }, [])
+
   // When quiz is done, handle differently based on mode
   useEffect(() => {
     if (state.phase === 'done' && state.result) {
@@ -173,9 +177,7 @@ export default function Quiz() {
             <button type="submit" className="btn-primary mt-2">
               Send Me a Copy &amp; See Results <ArrowRight size={16} className="inline ml-1" />
             </button>
-            <button type="button" onClick={handleSkip} className="text-sm text-center" style={{ color: 'var(--muted)' }}>
-              Skip — take me to my results
-            </button>
+            
             <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
               No spam. Your email is only used to send your roadmap.
             </p>
