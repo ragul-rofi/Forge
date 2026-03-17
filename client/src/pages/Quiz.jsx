@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuiz } from '../hooks/useQuiz'
 import { ArrowRight } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
@@ -12,6 +12,8 @@ import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 
 export default function Quiz() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedMode = searchParams.get('mode') // 'general' | 'advanced' | 'validate'
   const {
     state,
     questions,
@@ -45,6 +47,7 @@ export default function Quiz() {
   const [saving, setSaving] = useState(false)
   const [emailGateValue, setEmailGateValue] = useState('')
   const [emailGateError, setEmailGateError] = useState('')
+  const hasSaved = useRef(false)
 
   // When quiz is done, handle differently based on mode
   useEffect(() => {
@@ -53,6 +56,9 @@ export default function Quiz() {
       if (state.mode === 'general' && !state.studentInfo.email) {
         return // Show email gate instead
       }
+      // Prevent double-save (e.g. when email state change re-triggers this effect)
+      if (hasSaved.current) return
+      hasSaved.current = true
       // For advanced/validate, save immediately
       setSaving(true)
       saveSession().then(sessionId => {
@@ -67,13 +73,17 @@ export default function Quiz() {
   const handleEmailGateSubmit = (e) => {
     e.preventDefault()
     setEmailGateError('')
-    if (!emailGateValue.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailGateValue)) {
+    const trimmed = emailGateValue.trim()
+    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setEmailGateError('Please enter a valid email address.')
       return
     }
-    submitEmail(emailGateValue)
+    // Prevent double-save if the useEffect has already fired
+    if (hasSaved.current) return
+    hasSaved.current = true
+    if (trimmed) submitEmail(trimmed)
     setSaving(true)
-    saveSession(emailGateValue).then(sessionId => {
+    saveSession(trimmed || undefined).then(sessionId => {
       setSaving(false)
       if (sessionId) {
         navigate(`/result/${sessionId}`)
@@ -95,6 +105,10 @@ export default function Quiz() {
     }
 
     submitStudentInfo(formData)
+    // Auto-select mode from URL param after collect_info
+    if (preselectedMode && ['general', 'advanced', 'validate'].includes(preselectedMode)) {
+      selectMode(preselectedMode)
+    }
   }
 
   const domainColor = state.validateTarget ? DOMAIN_COLORS[state.validateTarget] : null
@@ -115,6 +129,14 @@ export default function Quiz() {
 
   // Email gate for general mode — quiz done but no email yet
   if (state.phase === 'done' && state.result && state.mode === 'general' && !state.studentInfo.email) {
+    const handleSkip = () => {
+      setSaving(true)
+      saveSession().then(sessionId => {
+        setSaving(false)
+        if (sessionId) navigate(`/result/${sessionId}`)
+      })
+    }
+
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
         <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
@@ -123,35 +145,41 @@ export default function Quiz() {
         </nav>
         <div className="px-6 pb-16 pt-8 max-w-md mx-auto fade-in">
           <div className="text-center mb-8">
-            <span className="text-4xl block mb-4">🎉</span>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: 'var(--surface2)', border: '1px solid var(--border)' }}
+            >
+              <ArrowRight size={24} style={{ color: 'var(--text)' }} />
+            </div>
             <h2 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
               Your result is ready.
             </h2>
             <p className="text-sm" style={{ color: 'var(--muted)' }}>
-              Enter your email to see your domain, roadmap, and salary data.
-              We'll also send you a copy.
+              Add your email to get a copy of your roadmap sent to you — useful for when you want to come back to it.
             </p>
           </div>
           <form onSubmit={handleEmailGateSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address *</label>
+              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address (optional)</label>
               <input
                 type="email"
                 value={emailGateValue}
                 onChange={e => setEmailGateValue(e.target.value)}
                 placeholder="you@email.com"
                 autoFocus
-                required
               />
             </div>
             {emailGateError && (
               <p className="text-sm text-red-400">{emailGateError}</p>
             )}
             <button type="submit" className="btn-primary mt-2">
-              Show My Results <ArrowRight size={16} className="inline ml-1" />
+              Send Me a Copy &amp; See Results <ArrowRight size={16} className="inline ml-1" />
+            </button>
+            <button type="button" onClick={handleSkip} className="text-sm text-center" style={{ color: 'var(--muted)' }}>
+              Skip — take me to my results
             </button>
             <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
-              Your email is used only to send your results. No spam. Ever.
+              No spam. Your email is only used to send your roadmap.
             </p>
           </form>
         </div>
@@ -179,22 +207,23 @@ export default function Quiz() {
       <div className="px-6 pb-16 pt-8 max-w-4xl mx-auto">
         {/* Step 0: Collect Info */}
         {state.phase === 'collect_info' && (
-          <div className="fade-in w-full max-w-md mx-auto">
+          <div className="fade-in w-full max-w-sm mx-auto">
             <h2 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
               Let's start with you.
             </h2>
             <p className="text-sm mb-8" style={{ color: 'var(--muted)' }}>
-              Just the basics — no email required to start.
+              Two quick fields. That's it.
             </p>
 
             <form onSubmit={handleSubmitInfo} className="flex flex-col gap-4">
               <div>
-                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Full Name *</label>
+                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>First Name *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Your full name"
+                  placeholder="Your name"
+                  autoFocus
                   required
                 />
               </div>
@@ -212,15 +241,6 @@ export default function Quiz() {
                   <option value="Final">Final Year</option>
                   <option value="Graduate">Already Graduated</option>
                 </select>
-              </div>
-              <div>
-                <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Department (optional)</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={e => setFormData({ ...formData, department: e.target.value })}
-                  placeholder="e.g. CSE, ECE, MBA..."
-                />
               </div>
 
               {formError && (

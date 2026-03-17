@@ -4,6 +4,9 @@ import {
   ArrowRight, Target, BarChart3, Map, Zap,
   Cloud, Code2, BrainCircuit, ShieldCheck,
   Palette, Network, Briefcase, DatabaseZap,
+  Container, Link2, Cpu, Sparkles, Megaphone,
+  Timer, IndianRupee, Layers, GitBranch,
+  MessageCircle, Activity, Compass,
 } from 'lucide-react'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
@@ -16,20 +19,25 @@ const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
 }))
 
 const DOMAIN_META = {
-  cloud:      { icon: Cloud,       tagline: 'Build what runs the internet' },
-  fullstack:  { icon: Code2,       tagline: 'Frontend to backend, end to end' },
-  data:       { icon: DatabaseZap, tagline: 'Turn numbers into decisions' },
-  ai:         { icon: BrainCircuit,tagline: 'Teach machines to think' },
-  cyber:      { icon: ShieldCheck, tagline: 'Defend what others build' },
-  design:     { icon: Palette,     tagline: 'Shape how people experience tech' },
-  networking: { icon: Network,     tagline: 'Connect everything, everywhere' },
-  business:   { icon: Briefcase,   tagline: 'Lead products and teams' },
+  cloud:      { icon: Cloud,        tagline: 'Build what runs the internet' },
+  fullstack:  { icon: Code2,        tagline: 'Frontend to backend, end to end' },
+  data:       { icon: DatabaseZap,  tagline: 'Turn numbers into decisions' },
+  ai:         { icon: BrainCircuit, tagline: 'Teach machines to think' },
+  cyber:      { icon: ShieldCheck,  tagline: 'Defend what others build' },
+  design:     { icon: Palette,      tagline: 'Shape how people experience tech' },
+  networking: { icon: Network,      tagline: 'Connect everything, everywhere' },
+  business:   { icon: Briefcase,    tagline: 'Lead products and teams' },
+  devops:     { icon: Container,    tagline: 'The glue between code and the real world' },
+  blockchain: { icon: Link2,        tagline: 'Build systems that nobody can tamper with' },
+  iot:        { icon: Cpu,          tagline: 'Make the physical world talk to the digital one' },
+  genai:      { icon: Sparkles,     tagline: 'Build products powered by intelligence' },
+  devrel:     { icon: Megaphone,    tagline: 'Explain hard things. Build audiences. Get paid for both.' },
 }
 
 const STEPS = [
-  { num: '01', title: 'Answer honestly', desc: 'No right or wrong. Just how you actually think.' },
-  { num: '02', title: 'We read the signals', desc: 'What you enjoy, avoid, and naturally lean toward.' },
-  { num: '03', title: 'Get your domain', desc: 'A real match — with salary data, roadmap, and next step.' },
+  { num: '01', icon: MessageCircle, title: 'Answer honestly', desc: 'No right or wrong. Just how you actually think.' },
+  { num: '02', icon: Activity,       title: 'We read the signals', desc: 'What you enjoy, avoid, and naturally lean toward.' },
+  { num: '03', icon: Compass,        title: 'Get your domain', desc: 'A real match — with salary data, roadmap, and next step.' },
 ]
 
 export default function Landing() {
@@ -38,19 +46,31 @@ export default function Landing() {
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <Logo height={32} />
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/login"
+            className="btn-secondary no-underline text-sm px-4 py-2 inline-flex items-center"
+          >
+            Log In
+          </Link>
+          <Link
+            to="/signup"
+            className="btn-primary no-underline text-sm px-4 py-2 inline-flex items-center"
+          >
+            Sign Up
+          </Link>
+          <ThemeToggle />
+        </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 md:pt-32 md:pb-40 overflow-hidden">
-        <DomainOrbit />
-
+      <section className="flex flex-col items-center justify-center text-center px-6 pt-20 pb-28 md:pt-32 md:pb-40">
         <RevealOnScroll>
           <span className="text-sm font-medium mb-8 block" style={{ color: 'var(--muted)' }}>Student Career Profiler</span>
         </RevealOnScroll>
 
         <RevealOnScroll delay={80}>
-          <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-[800] tracking-tight leading-[0.95] mb-8 relative z-10">
+          <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-[800] tracking-tight leading-[0.95] mb-8">
             <span style={{ color: 'var(--muted2)' }}>Don't find</span>
             <br />
             <span style={{ color: 'var(--muted2)' }}>your path.</span>
@@ -65,14 +85,14 @@ export default function Landing() {
         </RevealOnScroll>
 
         <RevealOnScroll delay={160}>
-          <p className="text-base md:text-lg max-w-lg mb-12 leading-relaxed relative z-10" style={{ color: 'var(--muted)' }}>
+          <p className="text-base md:text-lg max-w-lg mb-12 leading-relaxed" style={{ color: 'var(--muted)' }}>
             12 questions. No jargon. No guessing.<br className="hidden md:block" />
             Just an honest look at who you are — and where that leads in tech.
           </p>
         </RevealOnScroll>
 
         <RevealOnScroll delay={240}>
-          <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block relative z-10 group">
+          <Link to="/quiz" className="btn-primary text-base md:text-lg px-12 py-4 no-underline inline-block group">
             <span className="inline-flex items-center gap-2">
               Find My Path
               <ArrowRight size={18} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
@@ -82,6 +102,28 @@ export default function Landing() {
             No sign-up required · Takes 4–12 min
           </p>
         </RevealOnScroll>
+      </section>
+
+      {/* Stats strip */}
+      <section className="border-t border-b" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
+        <div className="max-w-5xl mx-auto px-6 py-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x" style={{ '--tw-divide-opacity': 1 }}>
+            {[
+              { icon: Layers,       value: '13',        label: 'Tech domains' },
+              { icon: GitBranch,    value: '7',         label: 'Profile types' },
+              { icon: Timer,        value: '4–12 min',  label: 'To your result' },
+              { icon: IndianRupee,  value: 'Real data', label: 'India salary ranges' },
+            ].map(({ icon: Icon, value, label }) => (
+              <div key={label} className="flex items-center gap-3 md:px-8 first:pl-0 last:pr-0">
+                <Icon size={18} strokeWidth={1.5} style={{ color: 'var(--muted2)', flexShrink: 0 }} />
+                <div>
+                  <p className="text-sm font-[700] leading-tight" style={{ color: 'var(--text)' }}>{value}</p>
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>{label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* How it works */}
@@ -94,22 +136,31 @@ export default function Landing() {
           </RevealOnScroll>
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            {STEPS.map((step, i) => (
-              <RevealOnScroll key={step.num} delay={i * 100}>
-                <div className="relative">
-                  <span className="text-[64px] md:text-[80px] font-[800] leading-none block mb-3"
-                    style={{ color: 'var(--border)', opacity: 0.5 }}>
-                    {step.num}
-                  </span>
-                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
-                    {step.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                    {step.desc}
-                  </p>
-                </div>
-              </RevealOnScroll>
-            ))}
+            {STEPS.map((step, i) => {
+              const StepIcon = step.icon
+              return (
+                <RevealOnScroll key={step.num} delay={i * 100}>
+                  <div className="relative">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+                    >
+                      <StepIcon size={18} strokeWidth={1.5} style={{ color: 'var(--muted2)' }} />
+                    </div>
+                    <span className="text-[56px] md:text-[64px] font-[800] leading-none block mb-3"
+                      style={{ color: 'var(--border)', opacity: 0.5 }}>
+                      {step.num}
+                    </span>
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+                      {step.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                      {step.desc}
+                    </p>
+                  </div>
+                </RevealOnScroll>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -118,7 +169,7 @@ export default function Landing() {
       <section className="max-w-5xl mx-auto px-6 py-24 md:py-32">
         <RevealOnScroll>
           <h2 className="text-3xl md:text-4xl font-[800] tracking-tight mb-4" style={{ color: 'var(--text)' }}>
-            8 domains you could land in
+            13 domains you could land in
           </h2>
           <p className="text-sm mb-12 max-w-md" style={{ color: 'var(--muted)' }}>
             Each one comes with real salary data, difficulty ratings, and a phase-by-phase roadmap.
@@ -190,6 +241,7 @@ export default function Landing() {
         <div className="grid md:grid-cols-3 gap-4">
           <RevealOnScroll delay={0}>
             <PathCard
+              to="/quiz?mode=general"
               label="NO IDEA"
               title="Start from scratch"
               desc="12 questions · ~5 min"
@@ -198,6 +250,7 @@ export default function Landing() {
           </RevealOnScroll>
           <RevealOnScroll delay={100}>
             <PathCard
+              to="/quiz?mode=advanced"
               label="ROUGH IDEA"
               title="Go deeper"
               desc="25 questions · ~12 min"
@@ -206,6 +259,7 @@ export default function Landing() {
           </RevealOnScroll>
           <RevealOnScroll delay={200}>
             <PathCard
+              to="/quiz?mode=validate"
               label="ALREADY DECIDED"
               title="Test my choice"
               desc="8 questions · ~4 min"
@@ -278,43 +332,6 @@ function RevealOnScroll({ children, delay = 0 }) {
       }}
     >
       {children}
-    </div>
-  )
-}
-
-function DomainOrbit() {
-  return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ opacity: 0.12 }}>
-      {DOMAINS.map((d, i) => {
-        const angle = (i / DOMAINS.length) * Math.PI * 2
-        const radius = 260
-        const x = Math.cos(angle) * radius
-        const y = Math.sin(angle) * radius
-        return (
-          <div
-            key={d.key}
-            className="absolute rounded-full animate-pulse"
-            style={{
-              width: 10 + (i % 3) * 6,
-              height: 10 + (i % 3) * 6,
-              backgroundColor: d.color,
-              left: `calc(50% + ${x}px)`,
-              top: `calc(50% + ${y}px)`,
-              animationDelay: `${i * 0.3}s`,
-              animationDuration: '3s',
-            }}
-          />
-        )
-      })}
-      <div
-        className="absolute rounded-full border"
-        style={{
-          width: 520,
-          height: 520,
-          borderColor: 'var(--border)',
-          opacity: 0.5,
-        }}
-      />
     </div>
   )
 }
@@ -405,15 +422,22 @@ function ResultPreviewCard({ icon, title, desc }) {
   )
 }
 
-function PathCard({ label, title, desc, detail }) {
+function PathCard({ to, label, title, desc, detail }) {
   return (
-    <div className="card flex flex-col h-full" style={{ padding: '24px' }}>
+    <Link
+      to={to}
+      className="card flex flex-col h-full no-underline group transition-all duration-200 hover:border-[color:var(--muted2)]"
+      style={{ padding: '24px' }}
+    >
       <span className="text-xs font-medium mb-3 block" style={{ color: 'var(--muted)' }}>
         {label}
       </span>
       <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>{title}</h3>
       <p className="text-xs mb-3" style={{ color: 'var(--muted2)' }}>{desc}</p>
-      <p className="text-sm mt-auto" style={{ color: 'var(--muted)' }}>{detail}</p>
-    </div>
+      <div className="flex items-center justify-between mt-auto">
+        <p className="text-sm" style={{ color: 'var(--muted)' }}>{detail}</p>
+        <ArrowRight size={14} strokeWidth={2} className="transition-transform duration-200 group-hover:translate-x-1 shrink-0" style={{ color: 'var(--muted)' }} />
+      </div>
+    </Link>
   )
 }

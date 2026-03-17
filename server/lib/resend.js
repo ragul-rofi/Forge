@@ -1,7 +1,28 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import { DOMAIN_NAMES, DOMAIN_COLORS } from './constants.js'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
+
+const FROM_EMAIL = process.env.GMAIL_USER || 'noreply@forge.dev'
+const FROM_NAME = 'FORGE'
+
+async function sendEmail({ to, subject, html }) {
+  const info = await transporter.sendMail({
+    from: `${FROM_NAME} <${FROM_EMAIL}>`,
+    to,
+    subject,
+    html,
+  })
+  return info
+}
 
 const FROM_EMAIL = 'aarav@tryforge.site'
 const FROM_NAME = 'FORGE'
@@ -124,40 +145,87 @@ export async function sendDigestEmail({ name, email, domain, currentPhase, tasks
   const domainColor = DOMAIN_COLORS[domain] || '#60a5fa'
   const baseUrl = process.env.CLIENT_URL || 'https://tryforge.site'
 
-  const { data, error } = await resend.emails.send({
-    from: `${FROM_NAME} <${FROM_EMAIL}>`,
+  return sendEmail({
     to: email,
-    subject: `Your FORGE week — Phase ${currentPhase} status`,
-    html: `
+    subject: `Your FORGE result — ${domainName} awaits`,
+    html,
+  })
+}
+
+export async function sendDigestEmail({ name, email, domain, currentPhase, tasksRemaining, daysSinceStart, streakDays }) {
+  const domainName = DOMAIN_NAMES[domain] || domain
+  const domainColor = DOMAIN_COLORS[domain] || '#60a5fa'
+  const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+
+  const html = `
 <!DOCTYPE html>
 <html>
-<body style="margin:0;padding:0;background:#0c0c0c;font-family:sans-serif;">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0c0c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
-    <h1 style="color:#f5f5f5;font-size:24px;letter-spacing:-2px;font-weight:800;">FORGE</h1>
+    <div style="text-align:center;margin-bottom:24px;">
+      <h1 style="color:#f5f5f5;font-size:24px;letter-spacing:-2px;font-weight:800;margin:0;">FORGE</h1>
+    </div>
     <p style="color:#e0e0e0;font-size:16px;">Hey ${name},</p>
     <p style="color:#aaa;font-size:14px;line-height:1.6;">
       Here's your weekly update for <strong style="color:${domainColor};">${domainName}</strong>.
     </p>
-    <div style="background:#141414;border:1px solid #2e2e2e;border-radius:8px;padding:20px;margin:20px 0;">
+    <div style="background:#1a1a2e;border-radius:8px;padding:20px;margin:20px 0;">
       <p style="color:#888;font-size:12px;margin:0 0 12px;">YOUR STATUS</p>
       <p style="color:#e0e0e0;font-size:14px;margin:4px 0;">📍 Phase ${currentPhase} of 5 — ${tasksRemaining}</p>
       <p style="color:#e0e0e0;font-size:14px;margin:4px 0;">📅 ${daysSinceStart} days since you started</p>
       ${streakDays > 0 ? `<p style="color:#f97316;font-size:14px;margin:4px 0;">🔥 ${streakDays} day streak</p>` : ''}
     </div>
     <div style="text-align:center;margin:24px 0;">
-      <a href="${baseUrl}/dashboard" 
-         style="display:inline-block;background:${domainColor};color:#0c0c0c;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">
+      <a href="${baseUrl}/dashboard" style="display:inline-block;background:${domainColor};color:#0c0c0c;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">
         Open Your Dashboard →
       </a>
+    </div>
+    <div style="text-align:center;border-top:1px solid #222;padding-top:16px;margin-top:24px;">
+      <p style="color:#555;font-size:11px;">
+        <a href="${baseUrl}/api/unsubscribe-digest" style="color:#555;text-decoration:underline;">Unsubscribe from weekly updates</a>
+      </p>
     </div>
   </div>
 </body>
 </html>
-    `,
-  })
+  `
 
-  if (error) throw new Error(error.message)
-  return data
+  return sendEmail({
+    to: email,
+    subject: `Your FORGE week — Phase ${currentPhase} status`,
+    html,
+  })
+}
+
+export async function sendAbandonmentEmail(name, email, sessionId) {
+  const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+  const firstName = (name || 'there').split(' ')[0]
+
+  const html = `
+  <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 20px; color: #e4e4e7;">
+    <h2 style="margin: 0 0 16px; font-size: 20px; color: #fafafa;">
+      You were mid-quiz on FORGE
+    </h2>
+    <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
+      Hey ${firstName} — you started the career profiler quiz but didn't finish.
+      It takes about 4 minutes to complete, and you'll get your personalized
+      domain recommendation, salary data, and a step-by-step roadmap.
+    </p>
+    <a href="${baseUrl}/quiz" style="display: inline-block; background: #60a5fa; color: #09090b; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+      Continue My Quiz →
+    </a>
+    <p style="color: #71717a; font-size: 12px; margin: 24px 0 0;">
+      No pressure — your progress is saved.
+    </p>
+  </div>
+  `
+
+  return sendEmail({
+    to: email,
+    subject: "You were mid-quiz on FORGE — 4 minutes to finish?",
+    html,
+  })
 }
 
 export async function sendAbandonmentEmail(name, email, sessionId) {

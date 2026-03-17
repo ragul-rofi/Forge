@@ -10,8 +10,12 @@ import DomainCard from '../components/result/DomainCard'
 import SalaryCard from '../components/result/SalaryCard'
 import RoadmapPhase from '../components/result/RoadmapPhase'
 import CertificationRow from '../components/result/CertificationRow'
+import FastMoneyAlt from '../components/result/FastMoneyAlt'
+import IncomeTimeline from '../components/result/IncomeTimeline'
+import NotMyVibeButton from '../components/result/NotMyVibeButton'
+import StartTodayTimer from '../components/result/StartTodayTimer'
 import LoadingDots from '../components/ui/LoadingDots'
-import { ArrowRight, ArrowLeft } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Bookmark } from 'lucide-react'
 
 export default function Result() {
   const { sessionId } = useParams()
@@ -222,6 +226,84 @@ export default function Result() {
           </section>
         )}
 
+        {/* Fresher Reality Check */}
+        {roadmap?.fresherReality && (
+          <section className="mb-8">
+            <div className="card p-5" style={{ borderLeft: `4px solid ${domainColor}` }}>
+              <h4 className="text-xs font-semibold tracking-wide mb-3" style={{ color: domainColor }}>
+                FRESHER REALITY CHECK
+              </h4>
+              <div className="space-y-2 text-sm" style={{ color: 'var(--muted2)' }}>
+                <p><span style={{ color: 'var(--muted)' }}>Entry salary:</span> {roadmap.fresherReality.entrySalary}</p>
+                <p><span style={{ color: 'var(--muted)' }}>When you start earning:</span> {roadmap.fresherReality.earningStart}</p>
+                <p><span style={{ color: 'var(--muted)' }}>First job title:</span> {roadmap.fresherReality.firstJobTitle}</p>
+                <p className="pt-1 italic text-xs" style={{ color: 'var(--muted)' }}>{roadmap.fresherReality.tip}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Prerequisite / Important Note */}
+        {(roadmap?.prerequisiteNote || roadmap?.importantNote) && (
+          <section className="mb-8">
+            <div className="card p-5" style={{ borderLeft: '4px solid #fbbf24' }}>
+              <h4 className="text-xs font-semibold tracking-wide mb-2" style={{ color: '#fbbf24' }}>
+                IMPORTANT NOTE
+              </h4>
+              <p className="text-sm" style={{ color: 'var(--muted2)' }}>
+                {roadmap.prerequisiteNote || roadmap.importantNote}
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* Fast Money Alternative */}
+        {roadmap && (
+          <section className="mb-8">
+            <FastMoneyAlt
+              primaryDomain={domain}
+              secondaryDomain={secondDomain}
+              salaryData={roadmap.salary}
+            />
+          </section>
+        )}
+
+        {/* Income Timeline */}
+        {roadmap && (
+          <section className="mb-8">
+            <IncomeTimeline primaryDomain={domain} secondaryDomain={secondDomain} />
+          </section>
+        )}
+
+        {/* Start Today Timer */}
+        {roadmap && (
+          <section className="mb-8">
+            <StartTodayTimer timeToJobReady={roadmap.salary.timeToJobReady} />
+          </section>
+        )}
+
+        {/* Save Your Roadmap CTA */}
+        <section className="mb-8">
+          <div
+            className="card p-6 text-center"
+            style={{ border: `2px solid ${domainColor}`, background: `${domainColor}08` }}
+          >
+            <Bookmark size={28} className="mx-auto mb-3" style={{ color: domainColor }} />
+            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>
+              Save Your Roadmap
+            </h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+              Create a free account to keep your roadmap, track progress, and get AI-powered guidance.
+            </p>
+            <a
+              href={`/login-student?signup=true&session=${sessionId}&domain=${domain}&profile=${session.primary_profile}`}
+              className="btn-primary no-underline inline-flex items-center gap-2"
+            >
+              Create Free Account <ArrowRight size={16} />
+            </a>
+          </div>
+        </section>
+
         {/* Section 4: Roadmap */}
         {roadmap && (
           <section className="mb-8">
@@ -255,6 +337,11 @@ export default function Result() {
             </div>
           )}
 
+          {/* Not My Vibe */}
+          <div className="text-center">
+            <NotMyVibeButton domain={domain} secondDomain={secondDomain} sessionId={sessionId} />
+          </div>
+
           <button onClick={handleShare} className="btn-secondary w-full">
             {copied ? 'Copied to clipboard!' : 'Share My Result'}
           </button>
@@ -274,6 +361,27 @@ export default function Result() {
           <span className="text-sm" style={{ color: 'var(--muted)' }}>· {new Date().getFullYear()}</span>
         </div>
       </footer>
+
+      {/* Sticky bottom bar — save roadmap reminder */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 border-t backdrop-blur-md px-4 py-3"
+        style={{ borderColor: 'var(--border)', backgroundColor: 'var(--bg-card)' }}
+      >
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <p className="text-xs sm:text-sm" style={{ color: 'var(--muted)' }}>
+            Your roadmap disappears when you close this tab. Save it in 30 seconds.
+          </p>
+          <a
+            href={`/login-student?signup=true&session=${sessionId}&domain=${domain}&profile=${session.primary_profile}`}
+            className="btn-primary text-xs sm:text-sm no-underline whitespace-nowrap inline-flex items-center gap-1"
+          >
+            Save <ArrowRight size={14} />
+          </a>
+        </div>
+      </div>
+
+      {/* Spacer for sticky bar */}
+      <div className="h-16" />
     </div>
   )
 }

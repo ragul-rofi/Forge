@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { BarChart3, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import AnalyticsChart from '../components/AnalyticsChart'
@@ -150,6 +151,72 @@ export default function Analytics() {
       .map(([name, value]) => ({ name, value }))
   }, [filtered])
 
+  // Chart 7: "Not My Vibe" rejection rate by domain
+  const rejectionData = useMemo(() => {
+    const rejections = {}
+    const totals = {}
+    filtered.forEach((s) => {
+      if (s.recommended_domain) {
+        totals[s.recommended_domain] = (totals[s.recommended_domain] || 0) + 1
+        if (s.result_rejected) {
+          rejections[s.recommended_domain] = (rejections[s.recommended_domain] || 0) + 1
+        }
+      }
+    })
+    return Object.keys(totals)
+      .filter((d) => rejections[d])
+      .map((d) => ({
+        name: DOMAIN_NAMES[d] || d,
+        rejections: rejections[d] || 0,
+        rate: Math.round(((rejections[d] || 0) / totals[d]) * 100),
+      }))
+      .sort((a, b) => b.rate - a.rate)
+  }, [filtered])
+
+  // Chart 8: AI Personalizer Usage (daily messages)
+  const [aiUsageData, setAiUsageData] = useState([])
+  useEffect(() => {
+    async function fetchAIUsage() {
+      try {
+        const { data } = await supabase
+          .from('students')
+          .select('ai_messages_today, last_active_date')
+        if (!data) return
+        const byDate = {}
+        data.forEach((s) => {
+          if (s.last_active_date && s.ai_messages_today > 0) {
+            const d = s.last_active_date
+            byDate[d] = (byDate[d] || 0) + s.ai_messages_today
+          }
+        })
+        setAiUsageData(
+          Object.entries(byDate)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .slice(-30)
+            .map(([date, messages]) => ({ name: date.slice(5), messages }))
+        )
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchAIUsage()
+  }, [])
+
+  // Chart 9: Domain Switch Rate (from → to via "Not My Vibe")
+  const domainSwitchData = useMemo(() => {
+    const switches = {}
+    filtered.forEach((s) => {
+      if (s.result_rejected && s.recommended_domain && s.alternate_domain_shown) {
+        const key = `${DOMAIN_NAMES[s.recommended_domain] || s.recommended_domain} → ${DOMAIN_NAMES[s.alternate_domain_shown] || s.alternate_domain_shown}`
+        switches[key] = (switches[key] || 0) + 1
+      }
+    })
+    return Object.entries(switches)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+  }, [filtered])
+
   // Trend observation
   const trendText = useMemo(() => {
     if (filtered.length < 5) return null
@@ -204,7 +271,10 @@ export default function Analytics() {
   return (
     <div className="print:bg-white">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-[700]" style={{ color: 'var(--text)' }}>Analytics</h2>
+        <h2 className="text-2xl font-[700] inline-flex items-center gap-2" style={{ color: 'var(--text)' }}>
+          <BarChart3 size={22} strokeWidth={1.75} style={{ color: 'var(--muted2)' }} />
+          Analytics
+        </h2>
         <div className="flex items-center gap-2">
           {TIME_RANGES.map((r) => (
             <button
@@ -218,8 +288,8 @@ export default function Analytics() {
               {r.label}
             </button>
           ))}
-          <button onClick={handleExportPDF} className="btn-secondary text-xs ml-2">
-            Export PDF
+          <button onClick={handleExportPDF} className="btn-secondary text-xs ml-2 inline-flex items-center gap-1.5">
+            <Download size={13} /> Export PDF
           </button>
         </div>
       </div>
@@ -308,9 +378,9 @@ export default function Analytics() {
         )}
       </div>
 
-      {/* Chart 6: Validate Verdicts */}
-      {verdicts.length > 0 && (
-        <div className="max-w-md">
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        {/* Chart 6: Validate Verdicts */}
+        {verdicts.length > 0 && (
           <AnalyticsChart
             type="pie"
             title="VALIDATE MODE VERDICTS"
@@ -319,8 +389,46 @@ export default function Analytics() {
             colors={['#10b981', '#fbbf24', '#f43f5e']}
             height={280}
           />
-        </div>
-      )}
+        )}
+
+        {/* Chart 7: Rejection Rate by Domain */}
+        {rejectionData.length > 0 && (
+          <AnalyticsChart
+            type="bar"
+            title='"NOT MY VIBE" REJECTION RATE BY DOMAIN'
+            data={rejectionData}
+            dataKeys={['rate']}
+            colors={['#f43f5e']}
+            height={280}
+          />
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        {/* Chart 8: AI Personalizer Usage */}
+        {aiUsageData.length > 0 && (
+          <AnalyticsChart
+            type="line"
+            title="AI PERSONALIZER USAGE (DAILY MESSAGES)"
+            data={aiUsageData}
+            dataKeys={['messages']}
+            colors={['#818cf8']}
+            height={250}
+          />
+        )}
+
+        {/* Chart 9: Domain Switch Rate */}
+        {domainSwitchData.length > 0 && (
+          <AnalyticsChart
+            type="bar"
+            title="DOMAIN SWITCH RATE (FROM → TO)"
+            data={domainSwitchData}
+            dataKeys={['count']}
+            colors={['#fbbf24']}
+            height={250}
+          />
+        )}
+      </div>
     </div>
   )
 }

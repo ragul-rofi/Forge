@@ -10,6 +10,7 @@ export default function QuestionEditor({ question, onSave, onClose }) {
   const [form, setForm] = useState({ ...question })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [showPreview, setShowPreview] = useState(false)
 
   if (!question) return null
@@ -36,46 +37,85 @@ export default function QuestionEditor({ question, onSave, onClose }) {
 
   const handleSave = async () => {
     setSaving(true)
+    setSaveError('')
     try {
-      // Save question
-      const { error: qError } = await supabase
-        .from('questions')
-        .update({
-          question_text: form.question_text,
-          signal_type: form.signal_type,
-          question_type: form.question_type,
-          display_order: form.display_order,
-          is_active: form.is_active,
-        })
-        .eq('id', form.id)
+      const isLocal = !form.id || form.id.startsWith('_local_')
 
-      if (qError) throw qError
-
-      // Save options
-      for (const opt of form.options || []) {
-        const { error: oError } = await supabase
-          .from('question_options')
-          .update({
-            option_text: opt.option_text,
-            scores: opt.scores,
+      if (isLocal) {
+        // INSERT: this local question is not yet in Supabase
+        const { data: qData, error: qError } = await supabase
+          .from('questions')
+          .insert({
+            question_text: form.question_text,
+            signal_type: form.signal_type,
+            question_type: form.question_type,
+            display_order: form.display_order,
+            is_active: form.is_active !== false,
           })
-          .eq('id', opt.id)
+          .select()
+          .single()
+        if (qError) throw qError
 
+        const optionsToInsert = (form.options || []).map((opt) => ({
+          question_id: qData.id,
+          option_text: opt.option_text,
+          scores: opt.scores || {},
+          display_order: opt.display_order,
+        }))
+
+        const { data: optsData, error: oError } = await supabase
+          .from('question_options')
+          .insert(optionsToInsert)
+          .select()
         if (oError) throw oError
+
+        await supabase.from('admin_events').insert({
+          event_type: 'question_created',
+          event_data: { question_id: qData.id },
+        })
+
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+        onSave?.({ ...qData, options: optsData || [], _isLocal: false, _prevLocalId: form.id })
+      } else {
+        // UPDATE: existing Supabase record
+        const { error: qError } = await supabase
+          .from('questions')
+          .update({
+            question_text: form.question_text,
+            signal_type: form.signal_type,
+            question_type: form.question_type,
+            display_order: form.display_order,
+            is_active: form.is_active,
+          })
+          .eq('id', form.id)
+        if (qError) throw qError
+
+        for (const opt of form.options || []) {
+          if (opt.id && !opt.id.startsWith('_local_')) {
+            const { error: oError } = await supabase
+              .from('question_options')
+              .update({
+                option_text: opt.option_text,
+                scores: opt.scores,
+              })
+              .eq('id', opt.id)
+            if (oError) throw oError
+          }
+        }
+
+        await supabase.from('admin_events').insert({
+          event_type: 'question_edited',
+          event_data: { question_id: form.id, changes: form },
+        })
+
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+        onSave?.(form)
       }
-
-      // Log admin event
-      await supabase.from('admin_events').insert({
-        event_type: 'question_edited',
-        event_data: { question_id: form.id, changes: form },
-      })
-
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-      onSave?.(form)
     } catch (err) {
       console.error('Save failed:', err)
-      alert('Save failed. Check console for details.')
+      setSaveError('Save failed: ' + err.message)
     } finally {
       setSaving(false)
     }
@@ -236,14 +276,27 @@ export default function QuestionEditor({ question, onSave, onClose }) {
           </div>
 
           {/* Save */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="btn-primary"
-            >
-              {saving ? 'Saving...' : saved ? <><Check size={14} className="inline mr-1" /> Saved</> : 'Save Changes'}
-            </button>
+          <div className="space-y-2">
+            {saveError && (
+              <div
+                className="text-xs px-3 py-2 rounded-lg"
+                style={{ backgroundColor: '#f43f5e10', border: '1px solid #f43f5e30', color: '#f43f5e' }}
+              >
+                {saveError}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="btn-primary"
+              >
+                {saving ? 'Saving...' : saved ? <><Check size={14} className="inline mr-1" /> Saved</> : (form._isLocal ? 'Save to Database' : 'Save Changes')}
+              </button>
+              {form._isLocal && (
+                <span className="text-xs" style={{ color: 'var(--muted)' }}>This question is local only — saving will add it to the database.</span>
+              )}
+            </div>
           </div>
         </>
       )}

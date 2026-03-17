@@ -2,8 +2,21 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { PROFILE_NAMES } from '../lib/profiles'
+import { Users, CalendarDays, CheckCircle2, Trophy } from 'lucide-react'
 import StatsCard from '../components/StatsCard'
 import AnalyticsChart from '../components/AnalyticsChart'
+
+function formatRelativeTime(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}
 
 export default function Overview() {
   const [stats, setStats] = useState({
@@ -110,7 +123,7 @@ export default function Overview() {
       .join(' ')
   }
 
-  const modeColors = ['var(--accent)', '#a78bfa', '#fbbf24']
+  const modeColors = ['#38bdf8', '#a78bfa', '#f59e0b']
 
   return (
     <div>
@@ -118,41 +131,54 @@ export default function Overview() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatsCard label="TOTAL SESSIONS" value={stats.total} />
-        <StatsCard label="THIS WEEK" value={stats.thisWeek} />
-        <StatsCard label="COMPLETION RATE" value={`${stats.completionRate}%`} />
-        <StatsCard label="TOP DOMAIN" value={stats.topDomain} />
+        <StatsCard label="TOTAL SESSIONS" value={stats.total} icon={Users} />
+        <StatsCard label="THIS WEEK" value={stats.thisWeek} icon={CalendarDays} />
+        <StatsCard label="COMPLETION RATE" value={`${stats.completionRate}%`} icon={CheckCircle2} />
+        <StatsCard label="TOP DOMAIN" value={stats.topDomain} icon={Trophy} />
       </div>
 
-      {/* Recent activity */}
+      {/* Latest Sessions */}
       <div className="card p-5 mb-8">
         <h3 className="font-mono text-xs tracking-wider mb-4" style={{ color: 'var(--muted)' }}>
-          RECENT ACTIVITY
+          LATEST SESSIONS
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {recent.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--muted)' }}>No sessions yet</p>
           )}
           {recent.map((s) => (
             <div
               key={s.id}
-              className="flex items-center justify-between py-2 border-b last:border-0 text-sm"
-              style={{ borderColor: 'var(--border)' }}
+              className="flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors hover:bg-white/[0.03]"
             >
-              <div className="flex items-center gap-3">
-                <span style={{ color: 'var(--text)' }}>{maskName(s.student_name)}</span>
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: DOMAIN_COLORS[s.recommended_domain] || 'var(--muted)' }}
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
+                  style={{ backgroundColor: `${DOMAIN_COLORS[s.recommended_domain] || 'var(--muted)'}15`, color: DOMAIN_COLORS[s.recommended_domain] || 'var(--muted)' }}
                 >
-                  {DOMAIN_NAMES[s.recommended_domain] || '—'}
-                </span>
-                <span className="text-xs capitalize" style={{ color: 'var(--muted)' }}>
-                  {s.primary_profile || ''}
-                </span>
+                  {(s.student_name || '?')[0].toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium truncate" style={{ color: 'var(--text)' }}>
+                      {maskName(s.student_name)}
+                    </span>
+                    <span
+                      className="text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+                      style={{ backgroundColor: `${DOMAIN_COLORS[s.recommended_domain] || '#888'}20`, color: DOMAIN_COLORS[s.recommended_domain] || 'var(--muted)' }}
+                    >
+                      {DOMAIN_NAMES[s.recommended_domain] || '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[11px] capitalize" style={{ color: 'var(--muted)' }}>
+                      {s.primary_profile || ''}{s.quiz_mode ? ` · ${s.quiz_mode}` : ''}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                {s.created_at ? new Date(s.created_at).toLocaleString() : ''}
+              <span className="text-[11px] shrink-0 ml-3" style={{ color: 'var(--muted)' }}>
+                {s.created_at ? formatRelativeTime(s.created_at) : ''}
               </span>
             </div>
           ))}
@@ -166,7 +192,7 @@ export default function Overview() {
           title="DOMAIN DISTRIBUTION"
           data={domainDist}
           dataKeys={['count']}
-          colors={domainDist.map((d) => d.color)}
+          perBarColors={domainDist.map((d) => d.color)}
           height={250}
         />
         <AnalyticsChart

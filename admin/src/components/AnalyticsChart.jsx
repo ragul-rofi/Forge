@@ -10,6 +10,7 @@ export default function AnalyticsChart({
   title,
   dataKeys = [],
   colors = [],
+  perBarColors,
   xKey = 'name',
   height = 300,
 }) {
@@ -38,7 +39,11 @@ export default function AnalyticsChart({
             <YAxis tick={{ fill: 'var(--muted)', fontSize: 11 }} />
             <Tooltip {...tooltipStyle} />
             {dataKeys.map((key, i) => (
-              <Bar key={key} dataKey={key} fill={colors[i] || 'var(--accent)'} radius={[4, 4, 0, 0]} />
+              <Bar key={key} dataKey={key} fill={colors[i] || 'var(--accent)'} radius={[4, 4, 0, 0]}>
+                {perBarColors && data.map((_, j) => (
+                  <Cell key={j} fill={perBarColors[j] || colors[i] || 'var(--accent)'} />
+                ))}
+              </Bar>
             ))}
           </BarChart>
         )}
