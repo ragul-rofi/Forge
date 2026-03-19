@@ -11,13 +11,46 @@ import abandonmentRouter from './routes/abandonment.js'
 const app = express()
 const PORT = process.env.PORT || 3001
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:5174']
+const allowedOrigins = new Set(
+  (process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://tryforge.site',
+      'https://admin.tryforge.site',
+      process.env.CLIENT_URL,
+    ])
+    .filter(Boolean)
+    .map((origin) => origin.trim())
+)
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true
+  if (allowedOrigins.has(origin)) return true
+
+  try {
+    const { hostname, protocol } = new URL(origin)
+    if (protocol === 'https:' && hostname.endsWith('.vercel.app')) {
+      return true
+    }
+  } catch {
+    return false
+  }
+
+  return false
+}
 
 app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PATCH'],
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true)
+      return
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin || 'unknown'}`))
+  },
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
 }))
 app.use(express.json())
 
