@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { createClient } from '@supabase/supabase-js'
-import { sendDigestEmail } from '../lib/resend.js'
+import { sendDigestEmail } from '../lib/mailtrap.js'
 
 const router = Router()
 

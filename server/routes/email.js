@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { createClient } from '@supabase/supabase-js'
-import { sendResultEmail } from '../lib/resend.js'
+import { sendResultEmail } from '../lib/mailtrap.js'
 
 const router = Router()
 
@@ -29,6 +29,11 @@ router.post('/send-result-email', async (req, res) => {
         .eq('id', sessionId)
         .single()
       session = data
+
+      if (session?.email_sent) {
+        return res.json({ success: true, skipped: true, reason: 'already-sent' })
+      }
+
       profile = session?.primary_profile
     }
 

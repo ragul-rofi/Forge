@@ -162,13 +162,14 @@ export default function Quiz() {
           </div>
           <form onSubmit={handleEmailGateSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address (optional)</label>
+              <label className="text-xs block mb-1" style={{ color: 'var(--muted)' }}>Email Address *</label>
               <input
                 type="email"
                 value={emailGateValue}
                 onChange={e => setEmailGateValue(e.target.value)}
                 placeholder="you@email.com"
                 autoFocus
+                required
               />
             </div>
             {emailGateError && (

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DOMAIN_COLORS } from '../../lib/constants'
+import { apiUrl } from '../../lib/api'
 
 export default function PhoneCallOption({ student, domain, profile, quizEmotion, roadmap }) {
   const domainColor = DOMAIN_COLORS[domain] || 'var(--accent)'
@@ -18,12 +19,10 @@ export default function PhoneCallOption({ student, domain, profile, quizEmotion,
     setErrorMsg('')
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-
       const domainContext = buildDomainContext(domain, roadmap)
       const salaryData = buildSalaryData(roadmap?.salary)
 
-      const res = await fetch(`${apiBase}/api/srini-call-outbound`, {
+      const res = await fetch(apiUrl('/api/srini-call-outbound'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

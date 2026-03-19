@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { apiUrl } from '../lib/api'
 
 export default function useRoadmapAI(student, roadmap) {
   const initialMessage = student?.name
@@ -22,8 +23,7 @@ export default function useRoadmapAI(student, roadmap) {
     setIsLoading(true)
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-      const response = await fetch(`${apiBase}/api/roadmap-ai`, {
+      const response = await fetch(apiUrl('/api/roadmap-ai'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

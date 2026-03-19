@@ -60,12 +60,14 @@ export default function Landing() {
           <Link
             to="/login"
             className="btn-secondary no-underline text-sm px-4 py-2 inline-flex items-center"
+            style={{ width: 'auto', whiteSpace: 'nowrap' }}
           >
             Log In
           </Link>
           <Link
             to="/signup"
             className="btn-primary no-underline text-sm px-4 py-2 inline-flex items-center"
+            style={{ width: 'auto', whiteSpace: 'nowrap' }}
           >
             Sign Up
           </Link>

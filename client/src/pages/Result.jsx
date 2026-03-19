@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase, signInStudent, signUpStudent } from '../lib/supabase'
+import { apiUrl } from '../lib/api'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
 import { DOMAIN_ROADMAPS } from '../data/roadmaps'
 import Logo from '../components/ui/Logo'
@@ -137,14 +138,30 @@ export default function Result() {
   }
 
   async function sendResultEmail(name, email, domain, sid) {
+    const sendKey = `forge-result-email:${sid}`
+    const sendState = sessionStorage.getItem(sendKey)
+    if (sendState === 'pending' || sendState === 'sent') {
+      return
+    }
+
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-      await fetch(`${apiBase}/api/send-result-email`, {
+      sessionStorage.setItem(sendKey, 'pending')
+      const endpoint = apiUrl('/api/send-result-email')
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, domain, sessionId: sid }),
       })
+
+      if (!response.ok) {
+        const details = await response.text().catch(() => '')
+        sessionStorage.removeItem(sendKey)
+        throw new Error(`Email API failed (${response.status}) at ${endpoint}${details ? `: ${details}` : ''}`)
+      }
+
+      sessionStorage.setItem(sendKey, 'sent')
     } catch (err) {
+      sessionStorage.removeItem(sendKey)
       console.error('Email send failed:', err)
     }
   }

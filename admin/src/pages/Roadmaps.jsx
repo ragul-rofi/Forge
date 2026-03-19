@@ -22,6 +22,64 @@ const DOMAIN_NAMES = {
 
 const ALL_DOMAINS = Object.keys(DOMAIN_NAMES)
 
+function toEditorPhase(phase, index) {
+  return {
+    number: phase?.number || index + 1,
+    title: phase?.title || `Phase ${index + 1}`,
+    duration: phase?.duration || '3–4 weeks',
+    tasks: Array.isArray(phase?.tasks) && phase.tasks.length ? phase.tasks : [''],
+    readyCheck: phase?.readyCheck || '',
+    quitWarning: phase?.quitWarning || '',
+  }
+}
+
+function toEditorCert(cert) {
+  return {
+    name: cert?.name || '',
+    priority: cert?.priority || 1,
+    link: cert?.link || '',
+  }
+}
+
+function buildDefaultTemplate(domain) {
+  const defaults = DOMAIN_ROADMAPS[domain] || {}
+  return {
+    domain,
+    domain_name: DOMAIN_NAMES[domain],
+    phases: (defaults.phases || []).map(toEditorPhase),
+    certifications: (defaults.certifications || []).map(toEditorCert),
+    salary_data: {
+      entry: defaults?.salary?.entry || '',
+      mid: defaults?.salary?.mid || '',
+      timeToJobReady: defaults?.salary?.timeToJobReady || '',
+    },
+    change_log: [],
+  }
+}
+
+function normalizeTemplate(domain, template) {
+  const fallback = buildDefaultTemplate(domain)
+  if (!template) return fallback
+
+  return {
+    ...fallback,
+    ...template,
+    domain,
+    domain_name: DOMAIN_NAMES[domain],
+    phases: Array.isArray(template.phases) && template.phases.length
+      ? template.phases.map(toEditorPhase)
+      : fallback.phases,
+    certifications: Array.isArray(template.certifications)
+      ? template.certifications.map(toEditorCert)
+      : fallback.certifications,
+    salary_data: {
+      ...fallback.salary_data,
+      ...(template.salary_data || {}),
+    },
+    change_log: Array.isArray(template.change_log) ? template.change_log : [],
+  }
+}
+
 export default function Roadmaps() {
   const { user } = useAdmin()
   const [templates, setTemplates] = useState({})
@@ -47,10 +105,22 @@ export default function Roadmaps() {
       if (error) throw error
 
       const map = {}
-      ;(data || []).forEach(t => { map[t.domain] = t })
+      ;(data || []).forEach(t => { map[t.domain] = normalizeTemplate(t.domain, t) })
+
+      ALL_DOMAINS.forEach((domain) => {
+        if (!map[domain]) {
+          map[domain] = buildDefaultTemplate(domain)
+        }
+      })
+
       setTemplates(map)
     } catch (err) {
       console.error('Failed to fetch roadmap templates:', err)
+      const fallbackMap = {}
+      ALL_DOMAINS.forEach((domain) => {
+        fallbackMap[domain] = buildDefaultTemplate(domain)
+      })
+      setTemplates(fallbackMap)
     } finally {
       setLoading(false)
     }
@@ -203,80 +273,20 @@ export default function Roadmaps() {
 
         {/* Right: Editor */}
         <div className="flex-1 min-w-0">
-          {currentTemplate ? (
-            <>
-              <RoadmapEditor
-                domain={selectedDomain}
-                template={currentTemplate}
-                domainColor={DOMAIN_COLORS[selectedDomain]}
-                onChange={handleChange}
+          <>
+            <RoadmapEditor
+              domain={selectedDomain}
+              template={currentTemplate}
+              domainColor={DOMAIN_COLORS[selectedDomain]}
+              onChange={handleChange}
+            />
+            <div className="mt-6">
+              <RoadmapVersionHistory
+                changeLog={currentTemplate.change_log}
+                onRestore={handleRestore}
               />
-              <div className="mt-6">
-                <RoadmapVersionHistory
-                  changeLog={currentTemplate.change_log}
-                  onRestore={handleRestore}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="card p-8 text-center">
-              <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-                No roadmap template exists for {DOMAIN_NAMES[selectedDomain]} yet.
-              </p>
-              <button
-                onClick={() => {
-                  const defaults = DOMAIN_ROADMAPS[selectedDomain]
-                  const defaultPhases = defaults?.phases?.map((p, i) => ({
-                    number: p.number || i + 1,
-                    title: p.title || `Phase ${i + 1}`,
-                    duration: p.duration || '3–4 weeks',
-                    tasks: p.tasks || [''],
-                    readyCheck: '',
-                    quitWarning: '',
-                  })) || Array.from({ length: 5 }, (_, i) => ({
-                    number: i + 1,
-                    title: `Phase ${i + 1}`,
-                    duration: '3–4 weeks',
-                    tasks: [''],
-                    readyCheck: '',
-                    quitWarning: '',
-                  }))
-
-                  const defaultCerts = defaults?.certifications?.map(c => ({
-                    name: c.name || '',
-                    priority: c.priority || 1,
-                    link: c.link || '',
-                  })) || []
-
-                  const defaultSalary = defaults?.salary ? {
-                    entry: defaults.salary.entry || '',
-                    mid: defaults.salary.mid || '',
-                    timeToJobReady: defaults.salary.timeToJobReady || '',
-                  } : { entry: '', mid: '', timeToJobReady: '' }
-
-                  setTemplates(prev => ({
-                    ...prev,
-                    [selectedDomain]: {
-                      domain: selectedDomain,
-                      phases: defaultPhases,
-                      certifications: defaultCerts,
-                      salary_data: defaultSalary,
-                      change_log: [],
-                    },
-                  }))
-                  setDirty(true)
-                }}
-                className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-                style={{
-                  backgroundColor: DOMAIN_COLORS[selectedDomain],
-                  color: '#fff',
-                  border: 'none',
-                }}
-              >
-                Create Template
-              </button>
             </div>
-          )}
+          </>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import PhoneCallOption from './PhoneCallOption'
 import PostCallSummary from './PostCallSummary'
 import { DOMAIN_ROADMAPS } from '../../data/roadmaps'
 import { DOMAIN_COLORS } from '../../lib/constants'
+import { apiUrl } from '../../lib/api'
 import { supabase } from '../../lib/supabase'
 
 const vapi = new Vapi(import.meta.env.VITE_VAPI_PUBLIC_KEY)
@@ -96,8 +97,7 @@ export default function SriniCard({ student, domain, profile, quizEmotion, sessi
 
   const logCallSession = async (vapiCallId, student, domain, profile, quizSessionId) => {
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-      await fetch(`${apiBase}/api/srini-log-session`, {
+      await fetch(apiUrl('/api/srini-log-session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
