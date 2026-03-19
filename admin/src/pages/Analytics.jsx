@@ -17,6 +17,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'FORGE Admin — Analytics'
     fetchSessions()
   }, [])
 

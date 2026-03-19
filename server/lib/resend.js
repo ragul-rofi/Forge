@@ -1,27 +1,66 @@
 import nodemailer from 'nodemailer'
 import { DOMAIN_NAMES, DOMAIN_COLORS } from './constants.js'
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
+const MAIL_ENABLED = process.env.MAIL_ENABLED !== 'false'
+const MAIL_FAIL_HARD = process.env.MAIL_FAIL_HARD === 'true'
 
-const FROM_EMAIL = process.env.GMAIL_USER || 'noreply@forge.dev'
+let transporter = null
+
+function getTransporter() {
+  if (transporter) return transporter
+
+  const user = process.env.GMAIL_USER
+  const pass = process.env.GMAIL_APP_PASSWORD
+  if (!user || !pass) return null
+
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE || 'false') === 'true',
+    auth: {
+      user,
+      pass,
+    },
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 20000,
+    dnsTimeout: 8000,
+  })
+
+  return transporter
+}
+
+const FROM_EMAIL = process.env.MAIL_FROM_EMAIL || process.env.GMAIL_USER || 'srini@tryforge.site'
 const FROM_NAME = 'FORGE'
 
 async function sendEmail({ to, subject, html }) {
-  const info = await transporter.sendMail({
-    from: `${FROM_NAME} <${FROM_EMAIL}>`,
-    to,
-    subject,
-    html,
-  })
-  return info
+  if (!MAIL_ENABLED) {
+    return { id: 'mail-disabled' }
+  }
+
+  const activeTransporter = getTransporter()
+  if (!activeTransporter) {
+    const err = new Error('SMTP not configured: set GMAIL_USER and GMAIL_APP_PASSWORD')
+    if (MAIL_FAIL_HARD) throw err
+    console.warn('[mail] skipped send:', err.message)
+    return { id: 'mail-not-configured' }
+  }
+
+  try {
+    const info = await activeTransporter.sendMail({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to,
+      subject,
+      html,
+    })
+    return info
+  } catch (err) {
+    const code = err?.code || 'UNKNOWN'
+    const message = err?.message || 'Unknown mail error'
+    if (MAIL_FAIL_HARD) throw err
+    console.warn(`[mail] send suppressed (${code}): ${message}`)
+    return { id: `mail-failed-${code.toLowerCase()}` }
+  }
 }
 
 const FROM_EMAIL = 'aarav@tryforge.site'

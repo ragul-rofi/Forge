@@ -2,6 +2,15 @@ import { useState, useCallback } from 'react'
 import OptionButton from './OptionButton'
 import Badge from '../ui/Badge'
 
+const TAG_STYLE = {
+  'FAST TRACK': { backgroundColor: 'rgba(244,63,94,0.12)', color: '#f43f5e' },
+  BALANCED: { backgroundColor: 'rgba(52,211,153,0.12)', color: '#34d399' },
+  'DEEP EXPLORE': { backgroundColor: 'rgba(56,189,248,0.12)', color: '#38bdf8' },
+  'SALARY FIRST': { backgroundColor: 'rgba(251,191,36,0.12)', color: '#fbbf24' },
+  'INTEREST FIRST': { backgroundColor: 'rgba(167,139,250,0.12)', color: '#a78bfa' },
+  DISCOVER: { backgroundColor: 'rgba(129,140,248,0.12)', color: '#818cf8' },
+}
+
 export default function GatewayQuestion({ question, onAnswer }) {
   const [selectedOption, setSelectedOption] = useState(null)
 
@@ -19,8 +28,8 @@ export default function GatewayQuestion({ question, onAnswer }) {
 
   return (
     <div className="slide-up w-full max-w-2xl mx-auto">
-      <div className="card p-6 md:p-8">
-        <h2 className="text-xl md:text-2xl font-semibold leading-snug mb-8" style={{ color: 'var(--text)' }}>
+      <div className="p-6 md:p-8" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+        <h2 className="leading-snug mb-8" style={{ color: 'var(--text)', fontFamily: 'Spectral, serif', fontSize: 'clamp(20px, 2.5vw, 22px)' }}>
           {question.question_text}
         </h2>
 
@@ -52,7 +61,7 @@ export default function GatewayQuestion({ question, onAnswer }) {
                     </span>
                     {option.label && (
                       <span className="inline-block mt-2">
-                        <Badge>{option.label}</Badge>
+                        <Badge style={TAG_STYLE[option.label] || {}}>{option.label}</Badge>
                       </span>
                     )}
                   </div>

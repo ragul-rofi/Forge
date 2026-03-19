@@ -19,19 +19,6 @@
   --radius-lg: 18px;
 }
 
-[data-theme="light"] {
-  --bg: #faf9f7;
-  --surface: #f3f1ed;
-  --surface2: #ebe8e2;
-  --surface3: #e2ded7;
-  --border: #e4e0d9;
-  --border2: #d4d0c8;
-  --text: #1a1a1a;
-  --muted: #888888;
-  --muted2: #555555;
-  --accent: #6366f1;
-  --bg-card: #f3f1ed;
-}
 
 * {
   margin: 0;
@@ -191,6 +178,23 @@ input:focus, select:focus, textarea:focus {
 
 .loading-dots span:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .full-mobile { width: 100% !important; }
+
+  h1 { font-size: clamp(32px, 8vw, 56px) !important; }
+  h2 { font-size: clamp(22px, 5vw, 36px) !important; }
+
+  .card {
+    padding: 16px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
 }
 
 

@@ -47,19 +47,20 @@ export default function QuizCard({ question, current, total, onAnswer, domainCol
   return (
     <div className="slide-up w-full max-w-2xl mx-auto" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Progress */}
-      <ProgressBar current={current} total={total} color={domainColor || 'var(--text)'} />
+      <ProgressBar current={current} total={total} color={domainColor || 'var(--accent)'} />
 
-      <div className="card mt-6 p-6 md:p-8">
+      <div className="mt-6 p-6 md:p-8" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
         {/* Top row */}
         <div className="flex items-center justify-between mb-6">
-          <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-            Question {current} of {total}
+          <span className="text-[10px] font-medium uppercase" style={{ color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '3px' }}>
+            Question {current}
           </span>
+          <span className="text-xs" style={{ color: 'var(--muted2)', fontFamily: 'JetBrains Mono, monospace' }}>Q {current}/{total}</span>
           <SignalBadge signal={question.signal_type} />
         </div>
 
         {/* Question text */}
-        <h2 className="text-xl md:text-2xl font-semibold leading-snug mb-8" style={{ color: 'var(--text)' }}>
+        <h2 className="leading-snug mb-8" style={{ color: 'var(--text)', fontFamily: 'Spectral, serif', fontSize: 'clamp(20px, 2.5vw, 22px)' }}>
           {question.question_text}
         </h2>
 

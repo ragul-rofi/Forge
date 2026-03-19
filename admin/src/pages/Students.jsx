@@ -8,6 +8,7 @@ export default function Students() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'FORGE Admin — Students'
     fetchSessions()
   }, [])
 

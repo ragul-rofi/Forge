@@ -1,10 +1,10 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAdmin } from '../hooks/useAdmin'
 import { LayoutDashboard, Users, FileQuestion, Map, BarChart3, LogOut, Menu, X } from 'lucide-react'
-import ThemeToggle from './ui/ThemeToggle'
 import Badge from './ui/Badge'
 import Logo from './ui/Logo'
 import { useState } from 'react'
+import ThemeToggle from './ui/ThemeToggle'
 
 const navLinks = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
@@ -116,6 +116,12 @@ export default function AdminLayout() {
 
       {/* Page content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div
+          className="md:hidden mb-4 p-3 rounded"
+          style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}
+        >
+          Admin dashboard is best viewed on desktop
+        </div>
         <Outlet />
       </main>
     </div>

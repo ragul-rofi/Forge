@@ -1,9 +1,10 @@
-export default function ProgressRing({ completed, total, color, size = 80 }) {
+export default function ProgressRing({ completed = 0, total = 5, progress, color, size = 80 }) {
   const strokeWidth = 6
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
-  const progress = total > 0 ? (completed / total) : 0
-  const offset = circumference - progress * circumference
+  const completedValue = typeof progress === 'number' ? progress : completed
+  const ratio = total > 0 ? (completedValue / total) : 0
+  const offset = circumference - ratio * circumference
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -26,14 +27,14 @@ export default function ProgressRing({ completed, total, color, size = 80 }) {
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+          style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
         />
       </svg>
       <span
         className="absolute text-sm font-bold"
         style={{ color: 'var(--text)' }}
       >
-        {completed}/{total}
+        {completedValue}/{total}
       </span>
     </div>
   )

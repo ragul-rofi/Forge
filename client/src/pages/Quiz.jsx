@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuiz } from '../hooks/useQuiz'
 import { ArrowRight } from 'lucide-react'
-import ThemeToggle from '../components/ui/ThemeToggle'
 import Logo from '../components/ui/Logo'
 import PathSelector from '../components/quiz/PathSelector'
 import GatewayQuestion from '../components/quiz/GatewayQuestion'
@@ -48,6 +47,10 @@ export default function Quiz() {
   const [emailGateValue, setEmailGateValue] = useState('')
   const [emailGateError, setEmailGateError] = useState('')
   const hasSaved = useRef(false)
+
+  useEffect(() => {
+    document.title = 'FORGE — Find Your Path'
+  }, [])
 
   // When quiz is done, handle differently based on mode
   useEffect(() => {
@@ -141,7 +144,6 @@ export default function Quiz() {
       <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
         <nav className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
           <Logo height={28} />
-          <ThemeToggle />
         </nav>
         <div className="px-6 pb-16 pt-8 max-w-md mx-auto fade-in">
           <div className="text-center mb-8">
@@ -175,9 +177,7 @@ export default function Quiz() {
             <button type="submit" className="btn-primary mt-2">
               Send Me a Copy &amp; See Results <ArrowRight size={16} className="inline ml-1" />
             </button>
-            <button type="button" onClick={handleSkip} className="text-sm text-center" style={{ color: 'var(--muted)' }}>
-              Skip — take me to my results
-            </button>
+            
             <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
               No spam. Your email is only used to send your roadmap.
             </p>
@@ -201,7 +201,7 @@ export default function Quiz() {
         >
           <Logo height={28} />
         </span>
-        <ThemeToggle />
+       
       </nav>
 
       <div className="px-6 pb-16 pt-8 max-w-4xl mx-auto">
