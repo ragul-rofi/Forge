@@ -11,6 +11,18 @@ export const signUpStudent = (email, password) =>
 export const signInStudent = (email, password) =>
 	supabase.auth.signInWithPassword({ email, password })
 
+export const signInWithGoogle = (redirectTo) =>
+	supabase.auth.signInWithOAuth({
+		provider: 'google',
+		options: {
+			redirectTo: redirectTo || `${window.location.origin}/dashboard`,
+			queryParams: {
+				access_type: 'offline',
+				prompt: 'consent',
+			},
+		},
+	})
+
 export const signOutStudent = () =>
 	supabase.auth.signOut()
 

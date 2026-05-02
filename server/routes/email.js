@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { createClient } from '@supabase/supabase-js'
-import { sendResultEmail } from '../lib/mailtrap.js'
+import { sendQuizResultEmail } from '../lib/resend.js'
 
 const router = Router()
 
@@ -45,27 +45,33 @@ router.post('/send-result-email', async (req, res) => {
       // Roadmap import may fail; that's okay
     }
 
-    const result = await sendResultEmail({
+    // Fire-and-forget: send email asynchronously without blocking response
+    sendQuizResultEmail(email, {
       name,
-      email,
       domain,
       sessionId,
       profile: profile || 'explorer',
       roadmap,
     })
+      .then((result) => {
+        console.log(`[Resend] Email sent successfully: ${result.id}`)
+        // Mark email as sent in Supabase after successful send
+        if (!sessionId.startsWith('local-')) {
+          return supabase
+            .from('quiz_sessions')
+            .update({ email_sent: true })
+            .eq('id', sessionId)
+        }
+      })
+      .catch((err) => {
+        console.error('[Resend] Email send failed:', err.message)
+      })
 
-    // Mark email as sent in Supabase
-    if (!sessionId.startsWith('local-')) {
-      await supabase
-        .from('quiz_sessions')
-        .update({ email_sent: true })
-        .eq('id', sessionId)
-    }
-
-    res.json({ success: true, id: result?.id })
+    // Respond immediately without waiting for email
+    res.json({ success: true, emailQueued: true })
   } catch (err) {
-    console.error('Email send error:', err)
-    res.status(500).json({ error: 'Failed to send email', details: err.message })
+    console.error('Email route error:', err)
+    res.status(500).json({ error: 'Failed to process request', details: err.message })
   }
 })
 

@@ -7,6 +7,7 @@ import roadmapAIRouter from './routes/roadmap-ai.js'
 import studentProgressRouter from './routes/student-progress.js'
 import weeklyDigestRouter from './routes/weekly-digest.js'
 import abandonmentRouter from './routes/abandonment.js'
+import sriniCallRouter from './routes/srini-call.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -61,6 +62,7 @@ app.use('/api', roadmapAIRouter)
 app.use('/api', studentProgressRouter)
 app.use('/api', weeklyDigestRouter)
 app.use('/api', abandonmentRouter)
+app.use('/api', sriniCallRouter)
 
 // Health check
 app.get('/api/health', (req, res) => {

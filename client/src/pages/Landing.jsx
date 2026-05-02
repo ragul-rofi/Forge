@@ -116,7 +116,7 @@ export default function Landing() {
             }}
           >
             <span className="inline-flex items-center gap-2">
-              Find My Path →
+              Find My Path
               <ArrowRight size={18} strokeWidth={2.5} className="transition-transform duration-200 group-hover:translate-x-1" />
             </span>
           </Link>
