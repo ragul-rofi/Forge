@@ -34,40 +34,9 @@ export default function StudentDashboard() {
   }, [location.pathname])
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
+    supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
         setUser(data.user)
-        
-        // Handle OAuth callback - check for pending quiz session
-        const pendingSessionId = localStorage.getItem('pendingSessionId')
-        const pendingDomain = localStorage.getItem('pendingDomain')
-        const pendingProfile = localStorage.getItem('pendingProfile')
-        
-        if (pendingSessionId && pendingDomain) {
-          // Link quiz session to user account
-          try {
-            const roadmap = DOMAIN_ROADMAPS[pendingDomain]
-            await supabase.from('students').upsert({
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'Student',
-              domain: pendingDomain,
-              profile_type: pendingProfile || 'explorer',
-              quiz_session_id: pendingSessionId,
-              roadmap_data: roadmap,
-              phase_progress: { phase_1: 'not_started' },
-              last_active_date: new Date().toISOString().slice(0, 10),
-            }, { onConflict: 'id' })
-            
-            // Clear pending data
-            localStorage.removeItem('pendingSessionId')
-            localStorage.removeItem('pendingDomain')
-            localStorage.removeItem('pendingProfile')
-            localStorage.removeItem('pendingQuizSession')
-          } catch (err) {
-            console.error('Failed to link quiz session:', err)
-          }
-        }
       } else {
         navigate('/login')
       }
