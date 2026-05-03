@@ -8,6 +8,7 @@ import StudentLogin from './pages/StudentLogin'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import StudentDashboard from './pages/StudentDashboard'
+import EmailConfirmed from './pages/EmailConfirmed'
 import StudentProtectedRoute from './components/StudentProtectedRoute'
 
 class ErrorBoundary extends React.Component {
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/signup" element={<StudentLogin defaultSignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/email-confirmed" element={<EmailConfirmed />} />
         <Route path="/login-student" element={<Navigate to="/login" replace />} />
         <Route
           path="/dashboard"
