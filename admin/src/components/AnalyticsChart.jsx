@@ -61,7 +61,9 @@ export default function AnalyticsChart({
                 dataKey={key}
                 stroke={colors[i] || 'var(--accent)'}
                 strokeWidth={2}
-                dot={false}
+                dot={{ r: 3 }}
+                connectNulls={true}
+                activeDot={{ r: 5 }}
               />
             ))}
           </LineChart>

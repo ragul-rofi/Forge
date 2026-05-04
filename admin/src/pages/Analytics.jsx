@@ -45,24 +45,54 @@ export default function Analytics() {
 
   // Chart 1: Domain Popularity Over Time (line chart)
   const domainOverTime = useMemo(() => {
+    if (filtered.length === 0) return []
+    
+    // Get all unique dates
+    const allDates = new Set()
     const dateMap = {}
+    
     filtered.forEach((s) => {
       if (!s.recommended_domain || !s.created_at) return
       const date = s.created_at.split('T')[0]
+      allDates.add(date)
       if (!dateMap[date]) dateMap[date] = {}
       dateMap[date][s.recommended_domain] = (dateMap[date][s.recommended_domain] || 0) + 1
     })
 
-    return Object.entries(dateMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, domains]) => ({
-        name: date.slice(5), // MM-DD
-        ...domains,
-      }))
+    // Get domains that have at least some data
+    const domainCounts = {}
+    filtered.forEach((s) => {
+      if (s.recommended_domain) {
+        domainCounts[s.recommended_domain] = (domainCounts[s.recommended_domain] || 0) + 1
+      }
+    })
+    
+    // Only include domains with at least 1 session
+    const activeDomains = Object.keys(domainCounts).filter(d => domainCounts[d] > 0)
+
+    // Build chart data with all dates
+    const sortedDates = Array.from(allDates).sort()
+    return sortedDates.map((date) => {
+      const entry = { name: date.slice(5) } // MM-DD
+      activeDomains.forEach((domain) => {
+        entry[domain] = dateMap[date]?.[domain] || 0
+      })
+      return entry
+    })
   }, [filtered])
 
-  const domainKeys = Object.keys(DOMAIN_NAMES)
-  const domainColorArray = domainKeys.map((k) => DOMAIN_COLORS[k])
+  // Get only active domain keys for the chart
+  const activeDomainKeys = useMemo(() => {
+    const domainCounts = {}
+    filtered.forEach((s) => {
+      if (s.recommended_domain) {
+        domainCounts[s.recommended_domain] = (domainCounts[s.recommended_domain] || 0) + 1
+      }
+    })
+    return Object.keys(domainCounts).filter(d => domainCounts[d] > 0)
+  }, [filtered])
+
+  const activeDomainColors = activeDomainKeys.map((k) => DOMAIN_COLORS[k])
 
   // Chart 2: Profile Distribution (radar)
   const profileDist = useMemo(() => {
@@ -315,8 +345,8 @@ export default function Analytics() {
           type="line"
           title="DOMAIN POPULARITY OVER TIME"
           data={domainOverTime}
-          dataKeys={domainKeys}
-          colors={domainColorArray}
+          dataKeys={activeDomainKeys}
+          colors={activeDomainColors}
           height={280}
         />
 
