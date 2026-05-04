@@ -38,6 +38,21 @@ export default function Result() {
 
   useEffect(() => {
     async function fetchSession() {
+      // Check if user is already authenticated
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        // User is logged in, check if they have a student record
+        const { data: studentData } = await supabase
+          .from('students')
+          .select('id')
+          .eq('id', authUser.id)
+          .maybeSingle()
+        
+        if (studentData) {
+          setExistingStudent(true)
+        }
+      }
+
       // Check if this is a local session (offline mode)
       if (sessionId.startsWith('local-')) {
         const saved = localStorage.getItem('forge-quiz-state')
@@ -228,7 +243,15 @@ export default function Result() {
       }
 
       // Sign up new student
-      const { data, error: signUpError } = await signUpStudent(normalizedEmail, password)
+      const { data, error: signUpError } = await signUpStudent(
+        normalizedEmail, 
+        password,
+        {
+          quiz_session_id: sessionId,
+          domain: domain,
+          profile: session.primary_profile
+        }
+      )
       if (signUpError) throw signUpError
 
       // Check if user already exists
@@ -461,9 +484,20 @@ export default function Result() {
 
             {existingStudent ? (
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={async () => {
+                  // Check if user is logged in
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (user) {
+                    // User is logged in, ensure student record exists
+                    await persistStudentRecord(user.id, email)
+                    navigate('/dashboard')
+                  } else {
+                    // Not logged in, redirect to login
+                    navigate('/login')
+                  }
+                }}
                 className="w-full py-3 text-sm font-semibold"
-                style={{ backgroundColor: domainColor, color: 'var(--bg)', border: 'none', borderRadius: 'var(--radius-sm)' }}
+                style={{ backgroundColor: domainColor, color: 'var(--bg)', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
               >
                 Continue in Dashboard →
               </button>

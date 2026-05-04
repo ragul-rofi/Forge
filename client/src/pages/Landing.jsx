@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowRight, Target, BarChart3, Map, Zap,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import Logo from '../components/ui/Logo'
 import { DOMAIN_COLORS, DOMAIN_NAMES } from '../lib/constants'
+import { supabase } from '../lib/supabase'
 
 const DOMAINS = Object.entries(DOMAIN_NAMES).map(([key, name]) => ({
   key,
@@ -40,9 +41,41 @@ const STEPS = [
 ]
 
 export default function Landing() {
+  const navigate = useNavigate()
+
   useEffect(() => {
     document.title = "FORGE — Don't find your path. Forge it."
-  }, [])
+
+    // Check if this is an email confirmation redirect
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const accessToken = hashParams.get('access_token')
+    const type = hashParams.get('type')
+    
+    if (accessToken && type === 'signup') {
+      // Email confirmation detected
+      const handleEmailConfirmation = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          // Check localStorage first, then user metadata as fallback
+          const pendingSessionId = 
+            localStorage.getItem('pendingSessionId') || 
+            user.user_metadata?.quiz_session_id
+          
+          if (pendingSessionId) {
+            // Redirect back to their result page
+            localStorage.removeItem('pendingSessionId')
+            navigate(`/result/${pendingSessionId}`, { replace: true })
+          } else {
+            // No pending session, go to dashboard
+            navigate('/dashboard', { replace: true })
+          }
+        }
+      }
+      
+      handleEmailConfirmation()
+    }
+  }, [navigate])
 
   return (
     <div

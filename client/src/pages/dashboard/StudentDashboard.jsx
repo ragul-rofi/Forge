@@ -9,9 +9,7 @@ import DashboardNav from '../../components/dashboard/DashboardNav'
 import ProfileBadge from '../../components/dashboard/ProfileBadge'
 import RoadmapView from '../../components/dashboard/RoadmapView'
 import CertTracker from '../../components/dashboard/CertTracker'
-import AIPersonalizer from '../../components/dashboard/AIPersonalizer'
 import OnboardingTour from '../../components/dashboard/OnboardingTour'
-import SriniFloat from '../../components/dashboard/SriniFloat'
 import SriniCard from '../../components/voice/SriniCard'
 import { Flame } from 'lucide-react'
 
@@ -20,7 +18,6 @@ export default function StudentDashboard() {
   const location = useLocation()
   const [user, setUser] = useState(null)
   const [activeTab, setActiveTab] = useState('roadmap')
-  const [showSrini, setShowSrini] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
@@ -34,14 +31,16 @@ export default function StudentDashboard() {
   }, [location.pathname])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    const initializeUser = async () => {
+      const { data } = await supabase.auth.getUser()
       if (data?.user) {
         setUser(data.user)
       } else {
         navigate('/login')
       }
       setAuthLoading(false)
-    })
+    }
+    initializeUser()
   }, [navigate])
 
   const {
@@ -52,7 +51,6 @@ export default function StudentDashboard() {
     isPhaseComplete,
     getCurrentPhase,
     getCompletedPhasesCount,
-    updateRoadmapData,
     updateCertStatus,
   } = useStudentProgress(user?.id)
 
@@ -79,10 +77,29 @@ export default function StudentDashboard() {
   }
 
   if (!student) {
+    // User is logged in but doesn't have a student record
+    // This is fine - they can still access the dashboard
+    // Just show them a message to take the quiz if they want a roadmap
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: 'var(--bg)' }}>
-        <p style={{ color: 'var(--muted)' }}>You haven't taken the quiz yet.</p>
-        <Link to="/quiz" className="btn-primary no-underline">Take the Quiz →</Link>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+        <DashboardNav
+          onLogout={handleLogout}
+          onSriniOpen={() => {}}
+        />
+        
+        <div className="max-w-2xl mx-auto px-4 pb-16 pt-6">
+          <div className="card p-8 text-center">
+            <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--text)' }}>
+              Welcome to FORGE
+            </h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--muted)' }}>
+              You don't have a roadmap yet. Take the quiz to discover your tech domain and get a personalized learning path.
+            </p>
+            <Link to="/quiz" className="btn-primary no-underline inline-flex items-center gap-2">
+              Take the Quiz →
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
@@ -107,7 +124,7 @@ export default function StudentDashboard() {
 
       <DashboardNav
         onLogout={handleLogout}
-        onSriniOpen={() => setShowSrini((prev) => !prev)}
+        onSriniOpen={() => {}}
       />
 
       <div className="max-w-2xl mx-auto px-4 pb-16 pt-6">
@@ -138,11 +155,18 @@ export default function StudentDashboard() {
                 onUpdateStatus={updateCertStatus}
               />
             </section>
-            <section id="ai-section" className="mb-8">
-              <AIPersonalizer
-                student={{ ...student, currentPhase }}
-                roadmap={roadmap}
-                onRoadmapChange={updateRoadmapData}
+            <section id="srini-section" className="mb-8">
+              <SriniCard
+                student={{ 
+                  name: student.name, 
+                  email: student.email, 
+                  year: student.year_of_study, 
+                  timeAvailable: student.time_available, 
+                  priority: student.priority 
+                }}
+                domain={domain}
+                profile={student.profile_type}
+                sessionId={student.quiz_session_id}
               />
             </section>
           </>
@@ -159,19 +183,7 @@ export default function StudentDashboard() {
         )}
 
         {activeTab === 'explore' && <ExploreTab currentDomain={domain} />}
-
-        {showSrini && (
-          <section className="mb-8">
-            <SriniCard
-              student={{ name: student.name, email: student.email, year: student.year_of_study, timeAvailable: student.time_available, priority: student.priority }}
-              domain={domain}
-              profile={student.profile_type}
-            />
-          </section>
-        )}
       </div>
-
-      <SriniFloat onClick={() => setShowSrini((prev) => !prev)} />
     </div>
   )
 }

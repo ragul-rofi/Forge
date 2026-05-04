@@ -195,7 +195,7 @@ export default function SriniCard({ student, domain, profile, quizEmotion, sessi
       )}
 
       <div className="flex items-center justify-center gap-2 flex-wrap mt-4">
-        {['EN', 'தமிழ்', 'हिंदी', 'తెలుగు', 'മലയ', 'ಕನ್ನಡ'].map(lang => (
+        {['EN', 'தமிழ்'].map(lang => (
           <span
             key={lang}
             className="text-xs px-2 py-1 rounded"
